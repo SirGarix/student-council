@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>สภานักเรียน | สารสาสน์วิเทศสมุทรสาคร</title>
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700;800&family=Kanit:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --navy: #0a1628;
+      --royal: #1a3a6b;
+      --gold: #d4a017;
+      --gold-light: #f0c040;
+      --cream: #fdf6e3;
+      --white: #ffffff;
+      --red: #c0392b;
+      --accent: #2980b9;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Sarabun', sans-serif;
+      background: var(--navy);
+      color: var(--white);
+      overflow-x: hidden;
+    }
+
+    /* ===== PAGE SYSTEM ===== */
+    .page { display: none; min-height: 100vh; }
+    .page.active { display: block; }
+
+    /* ===== LOBBY PAGE ===== */
+    #lobby {
+      background: linear-gradient(135deg, #0a1628 0%, #1a2f5a 50%, #0d2040 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Animated stars */
+    .stars {
+      position: absolute; inset: 0;
+      pointer-events: none;
+    }
+    .star {
+      position: absolute;
+      width: 3px; height: 3px;
+      background: var(--gold-light);
+      border-radius: 50%;
+      animation: twinkle 3s infinite;
+    }
+
+    @keyframes twinkle {
+      0%, 100% { opacity: 0.2; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.5); }
+    }
+
+    .lobby-seal {
+      width: 120px; height: 120px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--gold), var(--gold-light));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 3rem;
+      box-shadow: 0 0 40px rgba(212,160,23,0.5), 0 0 80px rgba(212,160,23,0.2);
+      margin-bottom: 1.5rem;
+      animation: float 4s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-12px); }
+    }
+
+    .lobby-school {
+      font-family: 'Kanit', sans-serif;
+      font-size: 0.85rem;
+      letter-spacing: 3px;
+      color: var(--gold);
+      text-transform: uppercase;
+      margin-bottom: 0.5rem;
+      opacity: 0;
+      animation: fadeUp 0.8s forwards 0.3s;
+    }
+
+    .lobby-title {
+      font-family: 'Kanit', sans-serif;
+      font-size: clamp(2rem, 6vw, 3.5rem);
+      font-weight: 900;
+      text-align: center;
+      line-height: 1.1;
+      margin-bottom: 0.5rem;
+      opacity: 0;
+      animation: fadeUp 0.8s forwards 0.5s;
+    }
+
+    .lobby-title span { color: var(--gold-light); }
+
+    .lobby-sub {
+      font-size: 1rem;
+      color: rgba(255,255,255,0.6);
+      margin-bottom: 3rem;
+      text-align: center;
+      opacity: 0;
+      animation: fadeUp 0.8s forwards 0.7s;
+    }
+
+    .lobby-buttons {
+      display: flex;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+      justify-content: center;
+      opacity: 0;
+      animation: fadeUp 0.8s forwards 0.9s;
+    }
+
+    .btn-lobby {
+      padding: 1rem 2.5rem;
+      border-radius: 50px;
+      font-family: 'Kanit', sans-serif;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: all 0.3s;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      text-decoration: none;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn-lobby::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: rgba(255,255,255,0.1);
+      transform: translateX(-100%);
+      transition: transform 0.3s;
+    }
+    .btn-lobby:hover::before { transform: translateX(0); }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--gold), var(--gold-light));
+      color: var(--navy);
+      box-shadow: 0 4px 20px rgba(212,160,23,0.4);
+    }
+    .btn-primary:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 30px rgba(212,160,23,0.6);
+    }
+
+    .btn-secondary {
+      background: transparent;
+      color: var(--white);
+      border: 2px solid rgba(255,255,255,0.4);
+    }
+    .btn-secondary:hover {
+      transform: translateY(-3px);
+      border-color: var(--white);
+      background: rgba(255,255,255,0.05);
+    }
+
+    .lobby-decor {
+      position: absolute;
+      border-radius: 50%;
+      opacity: 0.04;
+      border: 2px solid var(--gold);
+    }
+    .decor1 { width: 600px; height: 600px; top: -200px; right: -200px; }
+    .decor2 { width: 400px; height: 400px; bottom: -150px; left: -150px; }
+    .decor3 { width: 200px; height: 200px; top: 50%; left: 5%; }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ===== SHARED NAV ===== */
+    .top-nav {
+      background: rgba(10,22,40,0.95);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(212,160,23,0.2);
+      padding: 0.8rem 2rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      position: sticky; top: 0; z-index: 100;
+    }
+
+    .nav-back {
+      background: none; border: none;
+      color: var(--gold);
+      font-family: 'Kanit', sans-serif;
+      font-size: 0.9rem;
+      cursor: pointer;
+      display: flex; align-items: center; gap: 0.4rem;
+      padding: 0.4rem 0.8rem;
+      border-radius: 20px;
+      transition: background 0.2s;
+    }
+    .nav-back:hover { background: rgba(212,160,23,0.1); }
+
+    .nav-title {
+      font-family: 'Kanit', sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--white);
+    }
+
+    /* ===== MEMBERS PAGE ===== */
+    #members {
+      background: linear-gradient(180deg, #0a1628 0%, #0d1f3c 100%);
+      min-height: 100vh;
+    }
+
+    .members-hero {
+      text-align: center;
+      padding: 3rem 1rem 2rem;
+      position: relative;
+    }
+
+    .members-hero h1 {
+      font-family: 'Kanit', sans-serif;
+      font-size: clamp(1.8rem, 5vw, 3rem);
+      font-weight: 900;
+      color: var(--gold-light);
+      margin-bottom: 0.5rem;
+    }
+
+    .members-hero p {
+      color: rgba(255,255,255,0.55);
+      font-size: 0.95rem;
+    }
+
+    .gold-line {
+      width: 80px; height: 3px;
+      background: linear-gradient(90deg, var(--gold), var(--gold-light));
+      margin: 1rem auto;
+      border-radius: 2px;
+    }
+
+    .members-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 1.5rem;
+      padding: 1rem 2rem 4rem;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .member-card {
+      background: linear-gradient(135deg, rgba(26,58,107,0.5), rgba(13,32,64,0.8));
+      border: 1px solid rgba(212,160,23,0.2);
+      border-radius: 20px;
+      padding: 1.8rem 1.5rem;
+      text-align: center;
+      transition: all 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .member-card::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--gold), var(--gold-light));
+    }
+
+    .member-card:hover {
+      transform: translateY(-6px);
+      border-color: rgba(212,160,23,0.5);
+      box-shadow: 0 12px 40px rgba(212,160,23,0.15);
+    }
+
+    .member-avatar {
+      width: 80px; height: 80px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--royal), var(--accent));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2rem;
+      margin: 0 auto 1rem;
+      border: 3px solid rgba(212,160,23,0.4);
+      box-shadow: 0 0 20px rgba(212,160,23,0.2);
+    }
+
+    .member-role-badge {
+      display: inline-block;
+      padding: 0.25rem 0.8rem;
+      background: linear-gradient(135deg, var(--gold), var(--gold-light));
+      color: var(--navy);
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      font-family: 'Kanit', sans-serif;
+      margin-bottom: 0.6rem;
+    }
+
+    .member-name {
+      font-family: 'Kanit', sans-serif;
+      font-size: 1.15rem;
+      font-weight: 700;
+      margin-bottom: 0.3rem;
+    }
+
+    .member-dept {
+      font-size: 0.85rem;
+      color: rgba(255,255,255,0.55);
+      margin-bottom: 1rem;
+    }
+
+    .member-motto {
+      font-size: 0.85rem;
+      color: var(--gold-light);
+      font-style: italic;
+      border-top: 1px solid rgba(212,160,23,0.15);
+      padding-top: 0.8rem;
+    }
+
+    /* President special card */
+    .member-card.president {
+      background: linear-gradient(135deg, rgba(212,160,23,0.15), rgba(26,58,107,0.6));
+      border-color: rgba(212,160,23,0.5);
+      grid-column: 1 / -1;
+      max-width: 380px;
+      margin: 0 auto;
+    }
+
+    .member-card.president .member-avatar {
+      width: 100px; height: 100px;
+      font-size: 2.5rem;
+      border-color: var(--gold);
+      box-shadow: 0 0 30px rgba(212,160,23,0.4);
+    }
+
+    .member-card.president .member-name { font-size: 1.4rem; }
+
+    /* ===== COMMENTS PAGE ===== */
+    #comments {
+      background: linear-gradient(180deg, #0a1628 0%, #0d1f3c 100%);
+      min-height: 100vh;
+    }
+
+    .comments-hero {
+      text-align: center;
+      padding: 3rem 1rem 2rem;
+    }
+
+    .comments-hero h1 {
+      font-family: 'Kanit', sans-serif;
+      font-size: clamp(1.8rem, 5vw, 3rem);
+      font-weight: 900;
+      color: var(--gold-light);
+    }
+
+    .comments-hero p {
+      color: rgba(255,255,255,0.55);
+      font-size: 0.95rem;
+    }
+
+    .comment-container {
+      max-width: 750px;
+      margin: 0 auto;
+      padding: 0 1.5rem 4rem;
+    }
+
+    /* Comment form */
+    .comment-form-box {
+      background: linear-gradient(135deg, rgba(26,58,107,0.4), rgba(13,32,64,0.6));
+      border: 1px solid rgba(212,160,23,0.25);
+      border-radius: 20px;
+      padding: 2rem;
+      margin-bottom: 2.5rem;
+    }
+
+    .form-title {
+      font-family: 'Kanit', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--gold-light);
+      margin-bottom: 1.2rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+
+    .form-label {
+      font-size: 0.85rem;
+      color: rgba(255,255,255,0.65);
+      font-weight: 600;
+    }
+
+    .form-input, .form-select, .form-textarea {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 10px;
+      padding: 0.7rem 1rem;
+      color: var(--white);
+      font-family: 'Sarabun', sans-serif;
+      font-size: 0.95rem;
+      transition: border 0.2s;
+      width: 100%;
+    }
+
+    .form-input:focus, .form-select:focus, .form-textarea:focus {
+      outline: none;
+      border-color: var(--gold);
+      background: rgba(212,160,23,0.05);
+    }
+
+    .form-select option { background: var(--navy); }
+
+    .form-textarea {
+      resize: vertical;
+      min-height: 100px;
+    }
+
+    .type-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .type-tag {
+      padding: 0.3rem 0.9rem;
+      border-radius: 20px;
+      border: 1px solid rgba(255,255,255,0.2);
+      background: transparent;
+      color: rgba(255,255,255,0.6);
+      font-family: 'Sarabun', sans-serif;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .type-tag.active, .type-tag:hover {
+      border-color: var(--gold);
+      color: var(--gold-light);
+      background: rgba(212,160,23,0.1);
+    }
+
+    .btn-submit {
+      width: 100%;
+      padding: 0.9rem;
+      background: linear-gradient(135deg, var(--gold), var(--gold-light));
+      color: var(--navy);
+      border: none;
+      border-radius: 12px;
+      font-family: 'Kanit', sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s;
+      margin-top: 0.5rem;
+    }
+    .btn-submit:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(212,160,23,0.4);
+    }
+
+    /* Comment list */
+    .comments-list-title {
+      font-family: 'Kanit', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--white);
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .comment-count-badge {
+      background: var(--gold);
+      color: var(--navy);
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 0.15rem 0.5rem;
+      border-radius: 10px;
+    }
+
+    .comment-item {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 16px;
+      padding: 1.2rem 1.5rem;
+      margin-bottom: 1rem;
+      transition: border 0.2s;
+      animation: slideIn 0.4s ease;
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .comment-item:hover { border-color: rgba(212,160,23,0.2); }
+
+    .comment-header {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      margin-bottom: 0.6rem;
+    }
+
+    .comment-avatar {
+      width: 38px; height: 38px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--royal), var(--accent));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1rem;
+      flex-shrink: 0;
+    }
+
+    .comment-meta { flex: 1; }
+
+    .comment-author {
+      font-weight: 700;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .comment-level-badge {
+      font-size: 0.7rem;
+      padding: 0.1rem 0.5rem;
+      border-radius: 10px;
+      background: rgba(212,160,23,0.15);
+      color: var(--gold-light);
+      border: 1px solid rgba(212,160,23,0.2);
+    }
+
+    .comment-time {
+      font-size: 0.75rem;
+      color: rgba(255,255,255,0.4);
+    }
+
+    .comment-type-pill {
+      font-size: 0.72rem;
+      padding: 0.2rem 0.6rem;
+      border-radius: 10px;
+      font-weight: 600;
+    }
+
+    .pill-ความคิดเห็น { background: rgba(41,128,185,0.2); color: #74b9ff; border: 1px solid rgba(41,128,185,0.3); }
+    .pill-ข้อเสนอแนะ { background: rgba(39,174,96,0.2); color: #55efc4; border: 1px solid rgba(39,174,96,0.3); }
+    .pill-ร้องเรียน { background: rgba(192,57,43,0.2); color: #ff7675; border: 1px solid rgba(192,57,43,0.3); }
+    .pill-ขอสิ่งอำนวยความสะดวก { background: rgba(142,68,173,0.2); color: #a29bfe; border: 1px solid rgba(142,68,173,0.3); }
+
+    .comment-text {
+      font-size: 0.95rem;
+      color: rgba(255,255,255,0.85);
+      line-height: 1.7;
+    }
+
+    .comment-likes {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-top: 0.8rem;
+    }
+
+    .like-btn {
+      background: none;
+      border: 1px solid rgba(255,255,255,0.15);
+      color: rgba(255,255,255,0.5);
+      padding: 0.25rem 0.7rem;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex; align-items: center; gap: 0.3rem;
+      font-family: 'Sarabun', sans-serif;
+    }
+
+    .like-btn:hover, .like-btn.liked {
+      border-color: var(--gold);
+      color: var(--gold-light);
+      background: rgba(212,160,23,0.1);
+    }
+
+    /* Empty state */
+    .empty-state {
+      text-align: center;
+      padding: 3rem 1rem;
+      color: rgba(255,255,255,0.3);
+    }
+    .empty-state .icon { font-size: 3rem; margin-bottom: 0.5rem; }
+    .empty-state p { font-size: 0.9rem; }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 2rem; right: 2rem;
+      background: linear-gradient(135deg, var(--gold), var(--gold-light));
+      color: var(--navy);
+      padding: 0.8rem 1.5rem;
+      border-radius: 12px;
+      font-family: 'Kanit', sans-serif;
+      font-weight: 700;
+      font-size: 0.9rem;
+      box-shadow: 0 4px 20px rgba(212,160,23,0.4);
+      transform: translateY(100px);
+      opacity: 0;
+      transition: all 0.4s;
+      z-index: 999;
+    }
+    .toast.show { transform: translateY(0); opacity: 1; }
+
+    /* Mobile */
+    @media (max-width: 600px) {
+      .form-row { grid-template-columns: 1fr; }
+      .members-grid { grid-template-columns: 1fr; padding: 1rem; }
+      .lobby-buttons { flex-direction: column; align-items: center; }
+      .btn-lobby { width: 260px; justify-content: center; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ===== LOBBY ===== -->
+<div id="lobby" class="page active">
+  <div class="stars" id="starsContainer"></div>
+  <div class="lobby-decor decor1"></div>
+  <div class="lobby-decor decor2"></div>
+  <div class="lobby-decor decor3"></div>
+
+  <div class="lobby-seal">🏛️</div>
+  <div class="lobby-school">โรงเรียนสารสาสน์วิเทศสมุทรสาคร</div>
+  <h1 class="lobby-title">สภา<span>นักเรียน</span><br/>ปีการศึกษา 2568</h1>
+  <p class="lobby-sub">เสียงของเราคือการเปลี่ยนแปลง · ร่วมสร้างโรงเรียนในฝันของเราไปด้วยกัน</p>
+
+  <div class="lobby-buttons">
+    <button class="btn-lobby btn-primary" onclick="goTo('members')">
+      👥 สมาชิกสภานักเรียน
+    </button>
+    <button class="btn-lobby btn-secondary" onclick="goTo('comments')">
+      💬 ร้องเรียน / แสดงความคิดเห็น
+    </button>
+  </div>
+</div>
+
+<!-- ===== MEMBERS ===== -->
+<div id="members" class="page">
+  <nav class="top-nav">
+    <button class="nav-back" onclick="goTo('lobby')">← กลับ</button>
+    <span class="nav-title">🏛️ สมาชิกสภานักเรียน</span>
+  </nav>
+
+  <div class="members-hero">
+    <h1>คณะกรรมการสภานักเรียน</h1>
+    <div class="gold-line"></div>
+    <p>โรงเรียนสารสาสน์วิเทศสมุทรสาคร · ปีการศึกษา 2568</p>
+  </div>
+
+  <div class="members-grid">
+    <!-- President -->
+    <div class="member-card president">
+      <div class="member-avatar">👑</div>
+      <div class="member-role-badge">ประธานนักเรียน</div>
+      <div class="member-name">— ผู้สมัครชิงตำแหน่ง —</div>
+      <div class="member-dept">ตำแหน่งประธานนักเรียน</div>
+      <div class="member-motto">"เพื่อน้องๆ ทุกคน เราจะทำให้ดีที่สุด!"</div>
+    </div>
+
+    <!-- VP -->
+    <div class="member-card">
+      <div class="member-avatar">⭐</div>
+      <div class="member-role-badge">รองประธาน คนที่ 1</div>
+      <div class="member-name">รองประธานฝ่ายวิชาการ</div>
+      <div class="member-dept">ฝ่ายวิชาการ</div>
+      <div class="member-motto">"เรียนดี มีคุณภาพ"</div>
+    </div>
+
+    <div class="member-card">
+      <div class="member-avatar">🌟</div>
+      <div class="member-role-badge">รองประธาน คนที่ 2</div>
+      <div class="member-name">รองประธานฝ่ายกิจกรรม</div>
+      <div class="member-dept">ฝ่ายกิจกรรม</div>
+      <div class="member-motto">"สนุกกับทุกกิจกรรม"</div>
+    </div>
+
+    <!-- Dept heads -->
+    <div class="member-card">
+      <div class="member-avatar">📚</div>
+      <div class="member-role-badge">หัวหน้าฝ่าย</div>
+      <div class="member-name">ฝ่ายวิชาการ</div>
+      <div class="member-dept">ดูแลด้านการเรียนการสอน</div>
+      <div class="member-motto">"ความรู้คือพลัง"</div>
+    </div>
+
+    <div class="member-card">
+      <div class="member-avatar">🎨</div>
+      <div class="member-role-badge">หัวหน้าฝ่าย</div>
+      <div class="member-name">ฝ่ายศิลปวัฒนธรรม</div>
+      <div class="member-dept">ดูแลกิจกรรมศิลปะและวัฒนธรรม</div>
+      <div class="member-motto">"อนุรักษ์ความเป็นไทย"</div>
+    </div>
+
+    <div class="member-card">
+      <div class="member-avatar">⚽</div>
+      <div class="member-role-badge">หัวหน้าฝ่าย</div>
+      <div class="member-name">ฝ่ายกีฬาและสุขภาพ</div>
+      <div class="member-dept">ดูแลกิจกรรมกีฬา</div>
+      <div class="member-motto">"สุขภาพดี ชีวีมีสุข"</div>
+    </div>
+
+    <div class="member-card">
+      <div class="member-avatar">🌍</div>
+      <div class="member-role-badge">หัวหน้าฝ่าย</div>
+      <div class="member-name">ฝ่ายสิ่งแวดล้อม</div>
+      <div class="member-dept">ดูแลความสะอาดและสิ่งแวดล้อม</div>
+      <div class="member-motto">"โรงเรียนสะอาด น่าอยู่"</div>
+    </div>
+
+    <div class="member-card">
+      <div class="member-avatar">💡</div>
+      <div class="member-role-badge">หัวหน้าฝ่าย</div>
+      <div class="member-name">ฝ่ายสารสนเทศ</div>
+      <div class="member-dept">ดูแลสื่อและการสื่อสาร</div>
+      <div class="member-motto">"เชื่อมโยงทุกคนเข้าด้วยกัน"</div>
+    </div>
+
+    <div class="member-card">
+      <div class="member-avatar">🤝</div>
+      <div class="member-role-badge">หัวหน้าฝ่าย</div>
+      <div class="member-name">ฝ่ายสัมพันธ์ชุมชน</div>
+      <div class="member-dept">ดูแลความสัมพันธ์กับชุมชน</div>
+      <div class="member-motto">"ร่วมมือ ร่วมใจ"</div>
+    </div>
+
+    <div class="member-card">
+      <div class="member-avatar">💰</div>
+      <div class="member-role-badge">หัวหน้าฝ่าย</div>
+      <div class="member-name">ฝ่ายการเงิน</div>
+      <div class="member-dept">ดูแลงบประมาณและการเงิน</div>
+      <div class="member-motto">"โปร่งใส ตรวจสอบได้"</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== COMMENTS ===== -->
+<div id="comments" class="page">
+  <nav class="top-nav">
+    <button class="nav-back" onclick="goTo('lobby')">← กลับ</button>
+    <span class="nav-title">💬 ร้องเรียน / ความคิดเห็น</span>
+  </nav>
+
+  <div class="comments-hero">
+    <h1>บอกเราได้เลย! 📣</h1>
+    <div class="gold-line"></div>
+    <p>อยากได้อะไร? ต้องการให้ปรับปรุงอะไร? เราฟังทุกเสียงของน้องๆ</p>
+  </div>
+
+  <div class="comment-container">
+    <!-- Form -->
+    <div class="comment-form-box">
+      <div class="form-title">✍️ แสดงความคิดเห็น</div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">ชื่อ / นามแฝง</label>
+          <input class="form-input" id="inputName" type="text" placeholder="เช่น นักเรียน ม.3" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">ระดับชั้น</label>
+          <select class="form-select" id="inputLevel">
+            <option value="">-- เลือกระดับชั้น --</option>
+            <option>ป.1</option><option>ป.2</option><option>ป.3</option>
+            <option>ป.4</option><option>ป.5</option><option>ป.6</option>
+            <option>ม.1</option><option>ม.2</option><option>ม.3</option>
+            <option>ม.4</option><option>ม.5</option><option>ม.6</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group" style="margin-bottom:1rem">
+        <label class="form-label">ประเภท</label>
+        <div class="type-tags" id="typeTags">
+          <button class="type-tag active" onclick="selectType(this, 'ความคิดเห็น')">💬 ความคิดเห็น</button>
+          <button class="type-tag" onclick="selectType(this, 'ข้อเสนอแนะ')">💡 ข้อเสนอแนะ</button>
+          <button class="type-tag" onclick="selectType(this, 'ร้องเรียน')">🚨 ร้องเรียน</button>
+          <button class="type-tag" onclick="selectType(this, 'ขอสิ่งอำนวยความสะดวก')">🙏 ขอสิ่งอำนวยความสะดวก</button>
+        </div>
+      </div>
+
+      <div class="form-group" style="margin-bottom:1rem">
+        <label class="form-label">รายละเอียด</label>
+        <textarea class="form-textarea" id="inputText" placeholder="พิมพ์สิ่งที่อยากบอก อยากได้ อยากให้ปรับปรุง..."></textarea>
+      </div>
+
+      <button class="btn-submit" onclick="submitComment()">📨 ส่งความคิดเห็น</button>
+    </div>
+
+    <!-- List -->
+    <div class="comments-list-title">
+      💌 เสียงจากนักเรียน
+      <span class="comment-count-badge" id="countBadge">0</span>
+    </div>
+    <div id="commentsList">
+      <div class="empty-state">
+        <div class="icon">🌟</div>
+        <p>ยังไม่มีความคิดเห็น<br/>เป็นคนแรกที่บอกเราได้เลย!</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast">✅ ส่งความคิดเห็นแล้ว ขอบคุณมากนะ!</div>
+
+<script>
+  // Generate stars
+  const container = document.getElementById('starsContainer');
+  for (let i = 0; i < 60; i++) {
+    const s = document.createElement('div');
+    s.className = 'star';
+    s.style.left = Math.random() * 100 + '%';
+    s.style.top = Math.random() * 100 + '%';
+    s.style.animationDelay = Math.random() * 3 + 's';
+    s.style.animationDuration = (2 + Math.random() * 3) + 's';
+    container.appendChild(s);
+  }
+
+  // Page nav — hide all pages, show target, scroll to very top instantly
+  function goTo(id) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+  }
+
+  // ===== Comments with localStorage =====
+  const STORAGE_KEY = 'sarasas_comments_v1';
+
+  function loadComments() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      return raw ? JSON.parse(raw) : [];
+    } catch(e) { return []; }
+  }
+
+  function saveComments() {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(comments)); } catch(e) {}
+  }
+
+  let comments = loadComments();
+  let selectedType = 'ความคิดเห็น';
+
+  function selectType(el, type) {
+    document.querySelectorAll('.type-tag').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    selectedType = type;
+  }
+
+  function submitComment() {
+    const name = document.getElementById('inputName').value.trim() || 'นักเรียนนิรนาม';
+    const level = document.getElementById('inputLevel').value;
+    const text = document.getElementById('inputText').value.trim();
+
+    if (!text) {
+      document.getElementById('inputText').style.borderColor = 'var(--red)';
+      document.getElementById('inputText').focus();
+      setTimeout(() => document.getElementById('inputText').style.borderColor = '', 1500);
+      return;
+    }
+
+    const avatars = ['😊','🎓','📖','🌟','🏅','✨','🎒','💫'];
+    const comment = {
+      id: Date.now(),
+      name, level, type: selectedType, text,
+      avatar: avatars[Math.floor(Math.random() * avatars.length)],
+      time: new Date().toLocaleString('th-TH', { hour:'2-digit', minute:'2-digit', day:'numeric', month:'short' }),
+      likes: 0,
+      liked: false
+    };
+
+    comments.unshift(comment);
+    saveComments();
+    renderComments();
+
+    document.getElementById('inputName').value = '';
+    document.getElementById('inputText').value = '';
+    document.getElementById('inputLevel').value = '';
+
+    showToast();
+  }
+
+  function toggleLike(id) {
+    const c = comments.find(x => x.id === id);
+    if (!c) return;
+    c.liked = !c.liked;
+    c.likes += c.liked ? 1 : -1;
+    saveComments();
+    renderComments();
+  }
+
+  function renderComments() {
+    const list = document.getElementById('commentsList');
+    document.getElementById('countBadge').textContent = comments.length;
+
+    if (comments.length === 0) {
+      list.innerHTML = `<div class="empty-state"><div class="icon">🌟</div><p>ยังไม่มีความคิดเห็น<br/>เป็นคนแรกที่บอกเราได้เลย!</p></div>`;
+      return;
+    }
+
+    list.innerHTML = comments.map(c => `
+      <div class="comment-item">
+        <div class="comment-header">
+          <div class="comment-avatar">${c.avatar}</div>
+          <div class="comment-meta">
+            <div class="comment-author">
+              ${c.name}
+              ${c.level ? `<span class="comment-level-badge">${c.level}</span>` : ''}
+              <span class="comment-type-pill pill-${c.type}">${c.type}</span>
+            </div>
+            <div class="comment-time">${c.time}</div>
+          </div>
+        </div>
+        <div class="comment-text">${c.text.replace(/\n/g,'<br/>')}</div>
+        <div class="comment-likes">
+          <button class="like-btn ${c.liked ? 'liked' : ''}" onclick="toggleLike(${c.id})">
+            👍 ${c.likes > 0 ? c.likes : ''} เห็นด้วย
+          </button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function showToast() {
+    const t = document.getElementById('toast');
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3000);
+  }
+
+  renderComments();
+</script>
+</body>
+</html>
