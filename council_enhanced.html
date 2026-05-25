@@ -1,0 +1,4131 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>หาเสียงสภานักเรียน | สารสาสน์วิเทศสมุทรสาคร</title>
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700;800&family=Kanit:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --navy: #0a1628;
+      --royal: #1a3a6b;
+      --accent: #2980b9;
+      --gold: rgba(255,255,255,0.82);
+      --gold-light: #ffffff;
+      --gold-pale: #e8edf8;
+      --dark: #0a1628;
+      --dark-mid: #0d1f3c;
+      --white: #ffffff;
+      --cream: #f0f4ff;
+      --crimson-light: #4a7fd4;
+      --crimson-mid: #1a3a6b;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      height: 100%;
+      overflow: hidden;
+    }
+    body {
+      font-family: 'Sarabun', sans-serif;
+      background: var(--dark);
+      color: var(--white);
+    }
+    .page {
+      display: none;
+      position: fixed;
+      inset: 0;
+      overflow-y: scroll;
+      overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior-y: contain;
+      transform: translateZ(0);
+      will-change: transform;
+      scrollbar-gutter: stable;
+    }
+    .page.active { display: block; }
+    #lobby.active { display: flex; }
+    #lobby {
+      background: linear-gradient(135deg, #0a1628 0%, #1a2f5a 50%, #0d2040 100%);
+      min-height: 100%;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    #lobby::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: repeating-linear-gradient(
+        45deg,
+        transparent,
+        transparent 60px,
+        rgba(255,255,255,0.025) 60px,
+        rgba(255,255,255,0.025) 61px
+      );
+      pointer-events: none;
+    }
+    .stars { position: absolute; inset: 0; pointer-events: none; }
+    .star {
+      position: absolute;
+      width: 3px; height: 3px;
+      background: rgba(255,255,255,0.9);
+      border-radius: 50%;
+      animation: twinkle 3s infinite;
+    }
+    @keyframes twinkle {
+      0%, 100% { opacity: 0.2; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.5); }
+    }
+    .lobby-seal {
+      width: 130px; height: 130px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #1a3a6b, #2563b0);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 3.2rem;
+      box-shadow: 0 0 50px rgba(255,255,255,0.2), 0 0 100px rgba(41,128,185,0.3), inset 0 0 20px rgba(255,255,255,0.05);
+      margin-bottom: 1.5rem;
+      animation: float 4s ease-in-out infinite;
+      border: 3px solid rgba(255,255,255,0.25);
+      overflow: hidden;
+    }
+    .lobby-seal img {
+      width: 100%; height: 100%;
+      object-fit: cover; border-radius: 50%;
+      display: block;
+    }
+    .lobby-seal .seal-emoji {
+      font-size: 3.2rem; line-height: 1;
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0) rotate(0deg); }
+      50% { transform: translateY(-14px) rotate(2deg); }
+    }
+    .lobby-school {
+      font-family: 'Kanit', sans-serif;
+      font-size: 0.82rem;
+      letter-spacing: 3px;
+      color: rgba(255,255,255,0.75);
+      text-transform: uppercase;
+      margin-bottom: 0.5rem;
+      opacity: 0;
+      animation: fadeUp 0.8s forwards 0.3s;
+    }
+    .lobby-title {
+      font-family: 'Kanit', sans-serif;
+      font-size: clamp(2rem, 6vw, 3.5rem);
+      font-weight: 900;
+      text-align: center;
+      line-height: 1.1;
+      margin-bottom: 0.5rem;
+      opacity: 0;
+      animation: fadeUp 0.8s forwards 0.5s;
+      background: linear-gradient(135deg, #ffffff 30%, rgba(74,141,232,0.9) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .lobby-title span { -webkit-text-fill-color: transparent; }
+    .lobby-sub {
+      font-size: 1rem;
+      color: rgba(255,255,255,0.55);
+      margin-bottom: 3rem;
+      text-align: center;
+      opacity: 0;
+      animation: fadeUp 0.8s forwards 0.7s;
+    }
+    .lobby-buttons {
+      display: flex; gap: 1.5rem;
+      flex-wrap: wrap; justify-content: center;
+      opacity: 0;
+      animation: fadeUp 0.8s forwards 1.05s;
+    }
+    .btn-lobby {
+      padding: 1rem 2.5rem;
+      border-radius: 50px;
+      font-family: 'Kanit', sans-serif;
+      font-size: 1rem; font-weight: 600;
+      cursor: pointer; border: none;
+      transition: transform 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94), box-shadow 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      display: flex; align-items: center; gap: 0.6rem;
+      text-decoration: none;
+      position: relative; overflow: hidden;
+      will-change: transform;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+    .btn-lobby::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: rgba(255,255,255,0.1);
+      transform: translateX(-100%);
+      transition: transform 0.3s;
+    }
+    .btn-lobby:hover::before { transform: translateX(0); }
+    .btn-primary {
+      background: linear-gradient(135deg, rgba(255,255,255,0.95), rgba(220,230,255,0.9));
+      color: #0a1628;
+      box-shadow: 0 4px 24px rgba(255,255,255,0.2);
+    }
+    .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 8px 32px rgba(255,255,255,0.35); }
+    .btn-secondary {
+      background: transparent;
+      color: var(--white);
+      border: 2px solid rgba(255,255,255,0.35);
+    }
+    .btn-secondary:hover { transform: translateY(-3px); border-color: rgba(255,255,255,0.8); color: var(--white); }
+    .btn-policy {
+      background: linear-gradient(135deg, rgba(255,215,100,0.15), rgba(255,180,50,0.1));
+      color: rgba(255,220,100,0.95);
+      border: 2px solid rgba(255,200,80,0.45);
+    }
+    .btn-policy:hover { transform: translateY(-3px); border-color: rgba(255,210,80,0.85); box-shadow: 0 8px 28px rgba(255,190,60,0.25); }
+    .lobby-decor {
+      position: absolute; border-radius: 50%;
+      opacity: 0.05; border: 2px solid rgba(255,255,255,0.6);
+    }
+    .decor1 { width: 600px; height: 600px; top: -200px; right: -200px; }
+    .decor2 { width: 400px; height: 400px; bottom: -150px; left: -150px; }
+    .decor3 { width: 200px; height: 200px; top: 50%; left: 5%; }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .lobby-social {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+      justify-content: center;
+      opacity: 0;
+      animation: fadeUp 0.8s forwards 0.85s;
+    }
+    .social-link {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.55rem 1.2rem;
+      border-radius: 50px;
+      text-decoration: none;
+      font-family: 'Kanit', sans-serif;
+      transition: transform 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94), box-shadow 0.25s;
+      border: 1.5px solid transparent;
+      position: relative;
+      overflow: hidden;
+      will-change: transform;
+    }
+    .social-link::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: rgba(255,255,255,0.08);
+      transform: translateX(-100%);
+      transition: transform 0.3s;
+    }
+    .social-link:hover::before { transform: translateX(0); }
+    .social-link:hover { transform: translateY(-3px); }
+    .social-ig {
+      background: linear-gradient(135deg, rgba(131,58,180,0.25), rgba(252,176,69,0.18));
+      border-color: rgba(200,100,200,0.45);
+      color: #e090f0;
+    }
+    .social-ig:hover {
+      border-color: rgba(220,130,255,0.8);
+      box-shadow: 0 6px 24px rgba(180,80,220,0.35);
+      color: #f0b8ff;
+    }
+    .social-fb {
+      background: linear-gradient(135deg, rgba(24,119,242,0.25), rgba(66,103,178,0.18));
+      border-color: rgba(80,130,240,0.45);
+      color: #80b0ff;
+    }
+    .social-fb:hover {
+      border-color: rgba(100,160,255,0.8);
+      box-shadow: 0 6px 24px rgba(24,119,242,0.35);
+      color: #a8ccff;
+    }
+    .social-icon {
+      width: 20px; height: 20px;
+      flex-shrink: 0;
+    }
+    .social-text {
+      display: flex;
+      flex-direction: column;
+      line-height: 1.15;
+    }
+    .social-label {
+      font-size: 0.82rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+    .social-handle {
+      font-size: 0.7rem;
+      opacity: 0.65;
+      font-weight: 400;
+    }
+    .top-nav {
+      background: rgba(10,22,40,0.97);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      padding: 0.8rem 2rem;
+      display: flex; align-items: center; gap: 1rem;
+      position: sticky; top: 0; z-index: 100;
+    }
+    .nav-back {
+      background: none; border: 1px solid rgba(255,255,255,0.2);
+      color: rgba(255,255,255,0.8);
+      font-family: 'Kanit', sans-serif; font-size: 0.9rem;
+      cursor: pointer; display: flex; align-items: center; gap: 0.4rem;
+      padding: 0.4rem 0.9rem; border-radius: 20px;
+      transition: all 0.2s;
+    }
+    .nav-back:hover { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.5); }
+    .nav-title {
+      font-family: 'Kanit', sans-serif; font-size: 1rem;
+      font-weight: 700; color: var(--white);
+    }
+    #members {
+      background: linear-gradient(180deg, #0a1628 0%, #0d1f3c 100%);
+      min-height: 100vh;
+    }
+    .members-hero {
+      text-align: center; padding: 3rem 1rem 2rem;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      background: linear-gradient(180deg, rgba(26,58,107,0.4) 0%, transparent 100%);
+    }
+    .members-hero h1 {
+      font-family: 'Kanit', sans-serif;
+      font-size: clamp(1.8rem, 5vw, 3rem);
+      font-weight: 900; color: var(--white);
+      text-shadow: 0 0 30px rgba(255,255,255,0.15);
+      margin-bottom: 0.5rem;
+    }
+    .members-hero p { color: rgba(255,255,255,0.5); font-size: 0.95rem; }
+    .gold-line {
+      width: 80px; height: 3px;
+      background: linear-gradient(90deg, rgba(255,255,255,0.4), rgba(255,255,255,0.9), rgba(255,255,255,0.4));
+      margin: 1rem auto; border-radius: 2px;
+    }
+    .members-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+      padding: 0 2rem 2rem;
+      max-width: 960px;
+      margin: 0 auto 2rem;
+    }
+    .section-label {
+      max-width: 960px;
+      margin: 2rem auto 1.5rem;
+      padding: 0 2rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    .section-label-line {
+      flex: 1; height: 1px;
+      background: linear-gradient(90deg, rgba(255,255,255,0.3), transparent);
+    }
+    .section-label-line.right {
+      background: linear-gradient(270deg, rgba(255,255,255,0.3), transparent);
+    }
+    .section-label-text {
+      font-family: 'Kanit', sans-serif;
+      font-size: 0.8rem; font-weight: 700;
+      letter-spacing: 2px;
+      color: rgba(255,255,255,0.6);
+      white-space: nowrap;
+      border: 1px solid rgba(255,255,255,0.15);
+      padding: 0.3rem 1rem;
+      border-radius: 20px;
+      background: rgba(255,255,255,0.04);
+    }
+    .member-card {
+      background: linear-gradient(135deg, rgba(26,58,107,0.4), rgba(13,32,64,0.85));
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 20px;
+      padding: 1.8rem 1.5rem 1.2rem;
+      text-align: center;
+      transition: transform 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94), box-shadow 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94), border-color 0.25s;
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      will-change: transform;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+    .member-card::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--crimson-light), var(--gold), var(--gold-light));
+    }
+    .member-card:hover {
+      transform: translateY(-8px);
+      border-color: rgba(255,255,255,0.25);
+      box-shadow: 0 16px 50px rgba(41,128,185,0.25), 0 0 30px rgba(255,255,255,0.06);
+    }
+    .card-click-hint {
+      display: block;
+      font-size: 0.72rem;
+      color: rgba(255,255,255,0.45);
+      font-family: 'Kanit', sans-serif;
+      text-align: right;
+      margin-top: 0.6rem;
+    }
+    .member-avatar {
+      width: 90px; height: 90px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--royal), var(--accent));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2.2rem;
+      margin: 0 auto 1rem;
+      border: 3px solid rgba(255,255,255,0.2);
+      box-shadow: 0 0 20px rgba(255,255,255,0.05), 0 0 0 1px rgba(255,255,255,0.08);
+      overflow: hidden; position: relative;
+      transition: all 0.3s;
+    }
+    .member-card:hover .member-avatar {
+      border-color: rgba(255,255,255,0.6);
+      box-shadow: 0 0 30px rgba(255,255,255,0.15);
+    }
+    .member-avatar img {
+      width: 100%; height: 100%;
+      object-fit: cover; object-position: center top;
+      border-radius: 50%; display: block;
+    }
+    .member-avatar .avatar-emoji { font-size: 2rem; line-height: 1; }
+    .member-role-badge {
+      display: inline-block;
+      padding: 0.25rem 0.9rem;
+      background: rgba(255,255,255,0.12);
+      color: var(--white);
+      border: 1px solid rgba(255,255,255,0.25);
+      border-radius: 20px; font-size: 0.72rem;
+      font-weight: 800; font-family: 'Kanit', sans-serif;
+      margin-bottom: 0.6rem; letter-spacing: 0.5px;
+    }
+    .member-name {
+      font-family: 'Kanit', sans-serif; font-size: 1.1rem;
+      font-weight: 700; margin-bottom: 0.3rem;
+    }
+    .member-dept {
+      font-size: 0.82rem; color: rgba(255,255,255,0.45);
+      margin-bottom: 0.8rem;
+    }
+    .member-motto {
+      font-size: 0.82rem; color: var(--gold-light);
+      font-style: italic;
+      border-top: 1px solid rgba(255,255,255,0.1);
+      padding-top: 0.8rem;
+      margin-top: auto;
+    }
+    .member-card.president {
+      background: linear-gradient(135deg, rgba(255,255,255,0.08), rgba(26,58,107,0.5), rgba(13,32,64,0.9));
+      border-color: rgba(255,255,255,0.3);
+    }
+    .member-card.president .member-avatar {
+      width: 100px; height: 100px; font-size: 2.5rem;
+      border-color: rgba(255,255,255,0.55);
+      box-shadow: 0 0 30px rgba(255,255,255,0.12);
+      border-width: 4px;
+    }
+    .member-card.president .member-name { font-size: 1.2rem; }
+    .modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(10,0,0,0.85);
+      backdrop-filter: blur(8px);
+      z-index: 500;
+      display: flex; align-items: center; justify-content: center;
+      padding: 1rem;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.22s ease;
+    }
+    .modal-overlay.open {
+      opacity: 1; pointer-events: all;
+    }
+    .modal-box {
+      background: linear-gradient(135deg, #0d1f3c 0%, #0a1628 60%, #0f2244 100%);
+      border: 1px solid rgba(255,255,255,0.35);
+      border-radius: 24px;
+      max-width: 620px; width: 100%;
+      position: relative;
+      overflow: hidden;
+      transform: scale(0.93) translateY(16px);
+      transition: transform 0.32s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.22s ease;
+      box-shadow: 0 30px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.07);
+      opacity: 0;
+      will-change: transform, opacity;
+    }
+    .modal-overlay.open .modal-box {
+      transform: scale(1) translateY(0);
+      opacity: 1;
+    }
+    .modal-box::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, rgba(41,128,185,0.8), rgba(255,255,255,0.9), rgba(41,128,185,0.8));
+    }
+    .modal-box::after {
+      content: '🏛️';
+      position: absolute; bottom: -20px; right: -10px;
+      font-size: 10rem; opacity: 0.04;
+      pointer-events: none;
+    }
+    .modal-close {
+      position: absolute; top: 1rem; right: 1rem;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.2);
+      color: rgba(255,255,255,0.7);
+      width: 36px; height: 36px;
+      border-radius: 50%; font-size: 1.1rem;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      transition: all 0.2s; z-index: 5;
+      font-family: 'Kanit', sans-serif;
+    }
+    .modal-close:hover { background: rgba(255,255,255,0.15); transform: rotate(90deg); }
+    .modal-body {
+      display: flex;
+      gap: 0;
+      padding: 2rem;
+      padding-top: 2.2rem;
+      position: relative; z-index: 2;
+    }
+    .modal-photo-panel {
+      flex-shrink: 0;
+      width: 160px;
+      display: flex; flex-direction: column; align-items: center;
+      gap: 0.8rem;
+      padding-right: 1.5rem;
+      border-right: 1px solid rgba(255,255,255,0.1);
+      margin-right: 1.5rem;
+    }
+    .modal-photo {
+      width: 140px; height: 160px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, var(--royal), var(--accent));
+      overflow: hidden;
+      border: 3px solid rgba(255,255,255,0.25);
+      box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 3.5rem;
+      position: relative;
+    }
+    .modal-photo img {
+      width: 100%; height: 100%;
+      object-fit: cover; object-position: center top;
+      display: block;
+    }
+    .modal-photo-input-area {
+      width: 140px;
+    }
+    .modal-photo-label {
+      font-size: 0.7rem;
+      color: rgba(255,255,255,0.35);
+      text-align: center;
+      display: block;
+      margin-bottom: 0.3rem;
+      font-family: 'Kanit', sans-serif;
+    }
+    .modal-photo-url {
+      width: 100%;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 8px;
+      padding: 0.4rem 0.6rem;
+      color: rgba(255,255,255,0.6);
+      font-size: 0.68rem;
+      font-family: 'Sarabun', sans-serif;
+      outline: none;
+      transition: border 0.2s;
+    }
+    .modal-photo-url:focus { border-color: var(--gold); color: var(--white); }
+    .modal-photo-url::placeholder { color: rgba(255,255,255,0.2); font-size: 0.65rem; }
+    .modal-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .modal-role-badge {
+      display: inline-block;
+      padding: 0.2rem 0.8rem;
+      background: rgba(255,255,255,0.12);
+      color: var(--white);
+      border: 1px solid rgba(255,255,255,0.25);
+      border-radius: 20px; font-size: 0.72rem;
+      font-weight: 800; font-family: 'Kanit', sans-serif;
+      margin-bottom: 0.7rem;
+    }
+    .modal-fullname {
+      font-family: 'Kanit', sans-serif;
+      font-size: 1.25rem; font-weight: 800;
+      color: var(--white);
+      margin-bottom: 0.15rem;
+      line-height: 1.2;
+    }
+    .modal-nickname {
+      font-size: 0.88rem; color: rgba(255,255,255,0.75);
+      font-family: 'Kanit', sans-serif;
+      margin-bottom: 1rem;
+      font-weight: 600;
+    }
+    .modal-info-grid {
+      display: flex; flex-direction: column;
+      gap: 0.55rem;
+      margin-bottom: 1.2rem;
+    }
+    .modal-info-row {
+      display: flex; align-items: flex-start; gap: 0.5rem;
+      font-size: 0.85rem;
+    }
+    .info-icon {
+      width: 22px; flex-shrink: 0;
+      color: var(--gold);
+      font-size: 0.9rem;
+      text-align: center;
+      padding-top: 0.05rem;
+    }
+    .info-label {
+      color: rgba(255,255,255,0.4); min-width: 60px;
+      font-size: 0.78rem; padding-top: 0.1rem;
+    }
+    .info-value { color: rgba(255,255,255,0.9); font-weight: 600; }
+    .modal-socials {
+      display: flex; flex-direction: column; gap: 0.6rem;
+    }
+    .social-link {
+      display: flex; align-items: center; gap: 0.6rem;
+      padding: 0.55rem 1.1rem;
+      border-radius: 50px;
+      text-decoration: none;
+      font-size: 0.83rem;
+      font-family: 'Kanit', sans-serif;
+      font-weight: 600;
+      transition: all 0.3s;
+      border: 1.5px solid transparent;
+      position: relative; overflow: hidden;
+    }
+    .social-link::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: rgba(255,255,255,0.08);
+      transform: translateX(-100%);
+      transition: transform 0.3s;
+    }
+    .social-link:hover::before { transform: translateX(0); }
+    .social-link.facebook {
+      background: linear-gradient(135deg, rgba(24,119,242,0.25), rgba(66,103,178,0.18));
+      color: #80b0ff;
+      border-color: rgba(80,130,240,0.45);
+    }
+    .social-link.facebook:hover {
+      transform: translateY(-2px);
+      border-color: rgba(100,160,255,0.8);
+      box-shadow: 0 4px 18px rgba(24,119,242,0.35);
+      color: #a8ccff;
+    }
+    .social-link.instagram {
+      background: linear-gradient(135deg, rgba(131,58,180,0.25), rgba(252,176,69,0.18));
+      color: #e090f0;
+      border-color: rgba(200,100,200,0.45);
+    }
+    .social-link.instagram:hover {
+      transform: translateY(-2px);
+      border-color: rgba(220,130,255,0.8);
+      box-shadow: 0 4px 18px rgba(180,80,220,0.35);
+      color: #f0b8ff;
+    }
+    .social-link.no-link {
+      color: rgba(255,255,255,0.25);
+      border-color: rgba(255,255,255,0.06);
+      background: rgba(255,255,255,0.02);
+      cursor: default;
+      font-style: italic;
+      font-size: 0.78rem;
+      border-radius: 50px;
+    }
+    #comments {
+      background: linear-gradient(180deg, #0a1628 0%, #0d1f3c 100%);
+      min-height: 100vh;
+    }
+    .comments-hero {
+      text-align: center; padding: 3rem 1rem 2rem;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      background: linear-gradient(180deg, rgba(26,58,107,0.35) 0%, transparent 100%);
+    }
+    .comments-hero h1 {
+      font-family: 'Kanit', sans-serif;
+      font-size: clamp(1.8rem, 5vw, 3rem);
+      font-weight: 900; color: var(--white);
+    }
+    .comments-hero p { color: rgba(255,255,255,0.5); font-size: 0.95rem; }
+    .comment-container {
+      max-width: 750px; margin: 0 auto;
+      padding: 0 1.5rem 4rem;
+    }
+    .comment-form-box {
+      background: linear-gradient(135deg, rgba(26,58,107,0.35), rgba(13,32,64,0.6));
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 20px; padding: 2rem;
+      margin-bottom: 2.5rem;
+    }
+    .form-title {
+      font-family: 'Kanit', sans-serif; font-size: 1.1rem;
+      font-weight: 700; color: var(--white);
+      margin-bottom: 1.2rem;
+      display: flex; align-items: center; gap: 0.5rem;
+    }
+    .form-row {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 1rem; margin-bottom: 1rem;
+    }
+    .form-group { display: flex; flex-direction: column; gap: 0.4rem; }
+    .form-label { font-size: 0.85rem; color: rgba(255,255,255,0.6); font-weight: 600; }
+    .form-input, .form-select, .form-textarea {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 10px; padding: 0.7rem 1rem;
+      color: var(--white);
+      font-family: 'Sarabun', sans-serif; font-size: 0.95rem;
+      transition: border 0.2s; width: 100%;
+    }
+    .form-input:focus, .form-select:focus, .form-textarea:focus {
+      outline: none; border-color: var(--gold);
+      background: rgba(255,255,255,0.04);
+    }
+    .form-select option { background: var(--dark-mid); }
+    .form-textarea { resize: vertical; min-height: 100px; }
+    .type-tags { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem; }
+    .type-tag {
+      padding: 0.3rem 0.9rem; border-radius: 20px;
+      border: 1px solid rgba(255,255,255,0.18);
+      background: transparent; color: rgba(255,255,255,0.55);
+      font-family: 'Sarabun', sans-serif; font-size: 0.8rem;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .type-tag.active, .type-tag:hover {
+      border-color: rgba(255,255,255,0.45); color: var(--white);
+      background: rgba(255,255,255,0.08);
+    }
+    .btn-submit {
+      width: 100%; padding: 0.9rem;
+      background: linear-gradient(135deg, #1a3a6b, #2563b0);
+      color: var(--white); border: none; border-radius: 12px;
+      font-family: 'Kanit', sans-serif; font-size: 1rem;
+      font-weight: 700; cursor: pointer;
+      transition: transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94), box-shadow 0.2s;
+      margin-top: 0.5rem;
+      box-shadow: 0 4px 20px rgba(26,58,107,0.5);
+      will-change: transform;
+    }
+    .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(37,99,176,0.55); }
+    .comments-list-title {
+      font-family: 'Kanit', sans-serif; font-size: 1.1rem;
+      font-weight: 700; color: var(--white);
+      margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;
+    }
+    .comment-count-badge {
+      background: rgba(255,255,255,0.9); color: #0a1628;
+      font-size: 0.75rem; font-weight: 700;
+      padding: 0.15rem 0.5rem; border-radius: 10px;
+    }
+    .comment-item {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 16px; padding: 1.2rem 1.5rem;
+      margin-bottom: 1rem; transition: border-color 0.2s;
+      animation: slideIn 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+      contain: layout style;
+    }
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .comment-item:hover { border-color: rgba(255,255,255,0.15); }
+    .comment-header { display: flex; align-items: center; gap: 0.8rem; margin-bottom: 0.6rem; }
+    .comment-avatar {
+      width: 42px; height: 42px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--royal), var(--accent));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1rem; flex-shrink: 0;
+      overflow: hidden; border: 2px solid rgba(255,255,255,0.15);
+    }
+    .comment-avatar img {
+      width: 100%; height: 100%;
+      object-fit: cover; border-radius: 50%;
+      display: block;
+    }
+    .comment-meta { flex: 1; }
+    .comment-author {
+      font-weight: 700; font-size: 0.9rem;
+      display: flex; align-items: center; gap: 0.5rem;
+    }
+    .comment-level-badge {
+      font-size: 0.7rem; padding: 0.1rem 0.5rem;
+      border-radius: 10px;
+      background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.85);
+      border: 1px solid rgba(255,255,255,0.18);
+    }
+    .comment-time { font-size: 0.75rem; color: rgba(255,255,255,0.35); }
+    .comment-type-pill {
+      font-size: 0.72rem; padding: 0.2rem 0.6rem;
+      border-radius: 10px; font-weight: 600;
+    }
+    .pill-ความคิดเห็น { background: rgba(41,128,185,0.2); color: #74b9ff; border: 1px solid rgba(41,128,185,0.3); }
+    .pill-ข้อเสนอแนะ { background: rgba(39,174,96,0.2); color: #55efc4; border: 1px solid rgba(39,174,96,0.3); }
+    .pill-ร้องเรียน { background: rgba(192,57,43,0.2); color: #ff7675; border: 1px solid rgba(192,57,43,0.3); }
+    .pill-ขอสิ่งอำนวยความสะดวก { background: rgba(142,68,173,0.2); color: #a29bfe; border: 1px solid rgba(142,68,173,0.3); }
+    .comment-text { font-size: 0.95rem; color: rgba(255,255,255,0.85); line-height: 1.7; }
+    .comment-likes { display: flex; align-items: center; gap: 0.5rem; margin-top: 0.8rem; }
+    .like-btn {
+      background: none; border: 1px solid rgba(255,255,255,0.12);
+      color: rgba(255,255,255,0.45); padding: 0.25rem 0.7rem;
+      border-radius: 20px; font-size: 0.8rem; cursor: pointer;
+      transition: all 0.2s; display: flex; align-items: center; gap: 0.3rem;
+      font-family: 'Sarabun', sans-serif;
+    }
+    .like-btn:hover, .like-btn.liked { border-color: rgba(255,255,255,0.5); color: var(--white); background: rgba(255,255,255,0.08); }
+    .empty-state { text-align: center; padding: 3rem 1rem; color: rgba(255,255,255,0.28); }
+    .empty-state .icon { font-size: 3rem; margin-bottom: 0.5rem; }
+    .empty-state p { font-size: 0.9rem; }
+    .toast {
+      position: fixed; bottom: 2rem; right: 2rem;
+      background: linear-gradient(135deg, #1a3a6b, #2563b0);
+      color: var(--white);
+      padding: 0.8rem 1.5rem; border-radius: 12px;
+      font-family: 'Kanit', sans-serif; font-weight: 700; font-size: 0.9rem;
+      box-shadow: 0 4px 20px rgba(26,58,107,0.5);
+      transform: translateY(100px); opacity: 0;
+      transition: all 0.4s; z-index: 999;
+    }
+    .toast.show { transform: translateY(0); opacity: 1; }
+    .filter-tabs { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1.5rem; }
+    .filter-tab {
+      padding: 0.4rem 1rem; border-radius: 50px;
+      border: 1px solid rgba(255,255,255,0.14);
+      background: transparent; color: rgba(255,255,255,0.5);
+      font-family: 'Sarabun', sans-serif; font-size: 0.82rem;
+      cursor: pointer; transition: all 0.2s; white-space: nowrap;
+    }
+    .filter-tab:hover { border-color: rgba(255,255,255,0.4); color: var(--white); }
+    .filter-tab.active {
+      background: rgba(255,255,255,0.12);
+      color: var(--white);
+      border: 1px solid rgba(255,255,255,0.25); border-color: transparent; font-weight: 700;
+    }
+    .grade-filter-tab.active {
+      background: rgba(255,255,255,0.15) !important;
+      color: var(--white) !important;
+      border-color: rgba(255,255,255,0.4) !important;
+      font-weight: 700;
+    }
+    .login-prompt {
+      background: linear-gradient(135deg, rgba(26,58,107,0.3), rgba(13,32,64,0.5));
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 16px; padding: 1.5rem 2rem; text-align: center;
+    }
+    .login-prompt p { color: rgba(255,255,255,0.6); margin-bottom: 1rem; font-size: 0.95rem; }
+    .btn-google-login {
+      display: inline-flex; align-items: center; gap: 0.6rem;
+      background: white; color: #333; border: none; border-radius: 50px;
+      padding: 0.7rem 1.8rem; font-family: 'Kanit', sans-serif;
+      font-size: 0.95rem; font-weight: 600; cursor: pointer;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.3); transition: all 0.2s;
+    }
+    .btn-google-login:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.4); }
+    .user-info {
+      display: flex; align-items: center; gap: 0.8rem;
+      background: rgba(26,58,107,0.3); border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 50px; padding: 0.5rem 1.2rem; flex-wrap: wrap;
+    }
+    .user-photo { width: 32px; height: 32px; border-radius: 50%; border: 2px solid var(--gold); }
+    .user-name { font-size: 0.9rem; color: rgba(255,255,255,0.85); flex: 1; }
+    .admin-badge {
+      background: linear-gradient(135deg, #1a3a6b, #2563b0);
+      color: white; font-size: 0.72rem; font-weight: 700;
+      padding: 0.2rem 0.6rem; border-radius: 10px; font-family: 'Kanit', sans-serif;
+    }
+    .btn-logout {
+      background: none; border: 1px solid rgba(255,255,255,0.18);
+      color: rgba(255,255,255,0.45); padding: 0.25rem 0.7rem;
+      border-radius: 20px; font-size: 0.78rem; cursor: pointer;
+      font-family: 'Sarabun', sans-serif; transition: all 0.2s;
+    }
+    .btn-logout:hover { border-color: rgba(255,255,255,0.4); color: rgba(255,255,255,0.8); }
+    .user-uid-badge {
+      font-size: 0.65rem;
+      color: rgba(255,255,255,0.32);
+      font-family: 'Sarabun', monospace;
+      letter-spacing: 0.3px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 180px;
+    }
+    .btn-support {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.15);
+      color: rgba(255,255,255,0.55);
+      padding: 0.25rem 0.75rem;
+      border-radius: 20px; font-size: 0.78rem; cursor: pointer;
+      font-family: 'Kanit', sans-serif; transition: all 0.2s;
+      text-decoration: none;
+    }
+    .btn-support:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.35); color: rgba(255,255,255,0.85); }
+    .support-overlay {
+      position: fixed; inset: 0;
+      background: rgba(5,10,25,0.88);
+      backdrop-filter: blur(10px);
+      z-index: 700;
+      display: flex; align-items: center; justify-content: center;
+      padding: 1rem;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.22s ease;
+    }
+    .support-overlay.open { opacity: 1; pointer-events: all; }
+    .support-card {
+      background: linear-gradient(160deg, #0d1f3c 0%, #091526 60%, #0f2244 100%);
+      border: 1px solid rgba(255,255,255,0.22);
+      border-radius: 22px;
+      max-width: 400px; width: 100%;
+      position: relative;
+      overflow: hidden;
+      transform: scale(0.88) translateY(24px);
+      transition: transform 0.32s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.22s ease;
+      box-shadow: 0 32px 80px rgba(0,0,0,0.75), 0 0 0 1px rgba(255,255,255,0.06);
+      opacity: 0;
+      will-change: transform, opacity;
+    }
+    .support-overlay.open .support-card { transform: scale(1) translateY(0); opacity: 1; }
+    .support-card::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, rgba(41,128,185,0.8), rgba(255,255,255,0.95), rgba(41,128,185,0.8));
+    }
+    .support-card::after {
+      content: '🏛️';
+      position: absolute; bottom: -24px; right: -8px;
+      font-size: 9rem; opacity: 0.045;
+      pointer-events: none;
+    }
+    .support-close {
+      position: absolute; top: 1rem; right: 1rem;
+      background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.18);
+      color: rgba(255,255,255,0.65); width: 34px; height: 34px; border-radius: 50%;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      font-size: 1rem; transition: all 0.2s; z-index: 5;
+    }
+    .support-close:hover { background: rgba(255,255,255,0.14); transform: rotate(90deg); }
+    .support-body { padding: 2rem 2rem 1.8rem; position: relative; z-index: 2; }
+    .support-seal {
+      width: 64px; height: 64px; border-radius: 50%;
+      background: linear-gradient(135deg, #1a3a6b, #2563b0);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.8rem;
+      margin: 0 auto 1rem;
+      border: 2px solid rgba(255,255,255,0.25);
+      box-shadow: 0 0 24px rgba(41,128,185,0.35);
+    }
+    .support-title {
+      font-family: 'Kanit', sans-serif;
+      font-size: 1.2rem; font-weight: 800;
+      text-align: center; color: var(--white);
+      margin-bottom: 0.3rem;
+    }
+    .support-subtitle {
+      font-size: 0.82rem;
+      text-align: center;
+      color: rgba(255,255,255,0.45);
+      margin-bottom: 1.4rem;
+      font-family: 'Sarabun', sans-serif;
+    }
+    .support-divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+      margin-bottom: 1.4rem;
+    }
+    .support-channel-label {
+      font-family: 'Kanit', sans-serif;
+      font-size: 0.72rem; font-weight: 700;
+      letter-spacing: 2px; color: rgba(255,255,255,0.38);
+      text-transform: uppercase; margin-bottom: 0.8rem;
+      text-align: center;
+    }
+    .support-channels { display: flex; flex-direction: column; gap: 0.65rem; margin-bottom: 1.5rem; }
+    .support-channel-link {
+      display: flex; align-items: center; gap: 0.75rem;
+      padding: 0.7rem 1rem;
+      border-radius: 12px;
+      text-decoration: none;
+      font-family: 'Kanit', sans-serif; font-size: 0.9rem; font-weight: 600;
+      transition: all 0.2s;
+      border: 1px solid transparent;
+    }
+    .support-channel-link.ig {
+      background: rgba(225,48,108,0.1);
+      color: #ffadc7;
+      border-color: rgba(225,48,108,0.2);
+    }
+    .support-channel-link.ig:hover { background: rgba(225,48,108,0.2); border-color: rgba(225,48,108,0.4); transform: translateX(4px); }
+    .support-channel-link.fb {
+      background: rgba(24,119,242,0.1);
+      color: #90c3ff;
+      border-color: rgba(24,119,242,0.2);
+    }
+    .support-channel-link.fb:hover { background: rgba(24,119,242,0.2); border-color: rgba(24,119,242,0.4); transform: translateX(4px); }
+    .support-channel-link.no-social {
+      background: rgba(255,255,255,0.03);
+      color: rgba(255,255,255,0.28);
+      border-color: rgba(255,255,255,0.07);
+      cursor: default; font-style: italic; font-size: 0.82rem;
+    }
+    .support-channel-icon {
+      width: 34px; height: 34px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1rem; flex-shrink: 0;
+    }
+    .support-channel-icon.ig-icon {
+      background: linear-gradient(135deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);
+    }
+    .support-channel-icon.fb-icon { background: #1877f2; color: white; font-weight: 900; }
+    .support-note {
+      font-size: 0.75rem; text-align: center;
+      color: rgba(255,255,255,0.28); font-family: 'Sarabun', sans-serif;
+      line-height: 1.6;
+      border-top: 1px solid rgba(255,255,255,0.07);
+      padding-top: 1rem;
+    }
+    .floating-support {
+      position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 90;
+      background: linear-gradient(135deg, rgba(26,58,107,0.9), rgba(37,99,176,0.85));
+      border: 1px solid rgba(255,255,255,0.2);
+      color: rgba(255,255,255,0.9);
+      padding: 0.6rem 1.1rem;
+      border-radius: 50px; font-family: 'Kanit', sans-serif;
+      font-size: 0.82rem; font-weight: 600; cursor: pointer;
+      box-shadow: 0 4px 20px rgba(26,58,107,0.5);
+      display: flex; align-items: center; gap: 0.4rem;
+      transition: all 0.3s; backdrop-filter: blur(8px);
+      animation: fadeUp 0.8s forwards 1.2s; opacity: 0;
+    }
+    .floating-support:hover { transform: translateY(-3px); box-shadow: 0 8px 28px rgba(37,99,176,0.55); border-color: rgba(255,255,255,0.4); }
+    .floating-support.compact { padding: 0.7rem; border-radius: 50%; width: 44px; height: 44px; justify-content: center; gap: 0; font-size: 1.15rem; }
+    .floating-support.compact .support-btn-text { display: none; }
+    .floating-support.compact { padding: 0.7rem; border-radius: 50%; width: 44px; height: 44px; justify-content: center; gap: 0; font-size: 1.15rem; }
+    .floating-support.compact .support-btn-text { display: none; }
+    .delete-btn {
+      background: none; border: none; font-size: 1rem;
+      cursor: pointer; opacity: 0.35; transition: opacity 0.2s;
+      padding: 0.2rem; margin-left: auto;
+    }
+    .delete-btn:hover { opacity: 1; }
+    .anon-row {
+      display: flex; align-items: center; gap: 0.6rem;
+      margin-bottom: 1rem;
+      padding: 0.6rem 0.9rem;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 10px; cursor: pointer;
+      user-select: none;
+    }
+    .anon-row input[type=checkbox] { width: 16px; height: 16px; cursor: pointer; accent-color: #4a7fd4; }
+    .anon-label { font-size: 0.85rem; color: rgba(255,255,255,0.75); font-family: 'Kanit', sans-serif; }
+    .anon-desc { font-size: 0.75rem; color: rgba(255,255,255,0.4); margin-left: auto; }
+    .photo-url-input {
+      background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 8px; padding: 0.45rem 0.8rem;
+      color: rgba(255,255,255,0.85); font-size: 0.82rem;
+      font-family: 'Sarabun', sans-serif; outline: none; transition: border 0.2s;
+    }
+    .photo-url-input:focus { border-color: rgba(255,255,255,0.4); }
+    .photo-url-input::placeholder { color: rgba(255,255,255,0.25); }
+    .comment-menu-wrap { position: relative; margin-left: auto; flex-shrink: 0; }
+    .comment-menu-btn {
+      background: none; border: none; color: rgba(255,255,255,0.45);
+      font-size: 1.1rem; cursor: pointer; padding: 0.2rem 0.4rem;
+      border-radius: 6px; transition: all 0.2s; line-height: 1;
+    }
+    .comment-menu-btn:hover { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.9); }
+    .comment-dropdown {
+      position: absolute; right: 0; top: 110%;
+      background: #0d1f3c; border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 10px; min-width: 160px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+      z-index: 200; overflow: hidden;
+      display: none;
+    }
+    .comment-dropdown.open { display: block; }
+    .dropdown-item {
+      padding: 0.65rem 1rem; font-size: 0.85rem;
+      font-family: 'Kanit', sans-serif; cursor: pointer;
+      display: flex; align-items: center; gap: 0.5rem;
+      transition: background 0.15s; color: rgba(255,255,255,0.85);
+    }
+    .dropdown-item:hover { background: rgba(255,255,255,0.07); }
+    .dropdown-item.danger { color: #ff6b6b; }
+    .dropdown-item.danger:hover { background: rgba(255,50,50,0.12); }
+    .reveal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.8); backdrop-filter: blur(8px);
+      z-index: 600; display: flex; align-items: center; justify-content: center;
+      padding: 1rem; opacity: 0; pointer-events: none; transition: opacity 0.22s ease;
+    }
+    .reveal-overlay.open { opacity: 1; pointer-events: all; }
+    .reveal-box {
+      background: linear-gradient(135deg, #0d1f3c, #0a1628);
+      border: 1px solid rgba(255,255,255,0.3);
+      border-radius: 20px; padding: 2rem;
+      max-width: 380px; width: 100%;
+      position: relative;
+      overflow: hidden;
+      transform: scale(0.9) translateY(12px);
+      transition: transform 0.32s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.22s ease;
+      box-shadow: 0 30px 80px rgba(0,0,0,0.7);
+      opacity: 0;
+      will-change: transform, opacity;
+    }
+    .reveal-overlay.open .reveal-box { transform: scale(1) translateY(0); opacity: 1; }
+    .reveal-box::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg, #e74c3c, #ff8fab, #e74c3c);
+    }
+    .reveal-close {
+      position: absolute; top: 0.8rem; right: 0.8rem;
+      background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2);
+      color: rgba(255,255,255,0.7); width: 32px; height: 32px; border-radius: 50%;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      font-size: 1rem; transition: all 0.2s;
+    }
+    .reveal-close:hover { background: rgba(255,255,255,0.15); transform: rotate(90deg); }
+    .reveal-photo {
+      width: 80px; height: 80px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--royal), var(--accent));
+      margin: 0 auto 1rem; overflow: hidden;
+      border: 3px solid rgba(255,255,255,0.3);
+      display: flex; align-items: center; justify-content: center; font-size: 2rem;
+    }
+    .reveal-photo img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+    .reveal-name { font-family: 'Kanit', sans-serif; font-size: 1.1rem; font-weight: 700; text-align: center; margin-bottom: 0.3rem; }
+    .reveal-email { font-size: 0.82rem; color: rgba(255,255,255,0.5); text-align: center; margin-bottom: 1rem; }
+    .reveal-comment-preview {
+      background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 10px; padding: 0.8rem; font-size: 0.83rem;
+      color: rgba(255,255,255,0.7); font-style: italic; line-height: 1.5;
+    }
+    .reveal-badge {
+      display: inline-block; background: rgba(231,76,60,0.2);
+      color: #ff8080; border: 1px solid rgba(231,76,60,0.3);
+      font-size: 0.7rem; font-family: 'Kanit', sans-serif; font-weight: 700;
+      padding: 0.15rem 0.6rem; border-radius: 20px; margin-bottom: 0.8rem;
+    }
+    .ban-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.85); backdrop-filter: blur(8px);
+      z-index: 700; display: flex; align-items: center; justify-content: center;
+      padding: 1rem; opacity: 0; pointer-events: none; transition: opacity 0.22s ease;
+    }
+    .ban-overlay.open { opacity: 1; pointer-events: all; }
+    .ban-box {
+      background: linear-gradient(135deg, #0d1f3c, #0a1628);
+      border: 1px solid rgba(255,100,100,0.35);
+      border-radius: 20px; padding: 2rem;
+      max-width: 400px; width: 100%;
+      position: relative;
+      overflow: hidden;
+      transform: scale(0.9) translateY(12px);
+      transition: transform 0.32s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.22s ease;
+      box-shadow: 0 30px 80px rgba(0,0,0,0.7);
+      opacity: 0;
+      will-change: transform, opacity;
+    }
+    .ban-overlay.open .ban-box { transform: scale(1) translateY(0); opacity: 1; }
+    .ban-box::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg, #c0392b, #ff8fab, #c0392b);
+    }
+    .ban-close {
+      position: absolute; top: 0.8rem; right: 0.8rem;
+      background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2);
+      color: rgba(255,255,255,0.7); width: 32px; height: 32px; border-radius: 50%;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      font-size: 1rem; transition: all 0.2s;
+    }
+    .ban-close:hover { background: rgba(255,255,255,0.15); transform: rotate(90deg); }
+    .ban-title {
+      font-family: 'Kanit', sans-serif; font-size: 1.1rem; font-weight: 700;
+      color: #ff8080; margin-bottom: 1.2rem; display: flex; align-items: center; gap: 0.5rem;
+    }
+    .ban-target-info {
+      background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 10px; padding: 0.7rem 1rem; margin-bottom: 1.2rem;
+      font-size: 0.85rem; color: rgba(255,255,255,0.75);
+    }
+    .ban-duration-label {
+      font-size: 0.82rem; color: rgba(255,255,255,0.6); margin-bottom: 0.5rem;
+      font-family: 'Kanit', sans-serif; font-weight: 600;
+    }
+    .ban-duration-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.4rem; margin-bottom: 1.2rem;
+    }
+    .ban-duration-btn {
+      padding: 0.5rem 0.3rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.15);
+      background: transparent; color: rgba(255,255,255,0.65);
+      font-family: 'Kanit', sans-serif; font-size: 0.8rem;
+      cursor: pointer; transition: all 0.2s; text-align: center;
+    }
+    .ban-duration-btn:hover { border-color: rgba(255,100,100,0.5); color: #ff8080; }
+    .ban-duration-btn.active { background: rgba(192,57,43,0.25); border-color: rgba(192,57,43,0.6); color: #ff8080; font-weight: 700; }
+    .ban-reason-label {
+      font-size: 0.82rem; color: rgba(255,255,255,0.6); margin-bottom: 0.5rem;
+      font-family: 'Kanit', sans-serif; font-weight: 600;
+    }
+    .ban-reason-input {
+      width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 8px; padding: 0.6rem 0.8rem; color: rgba(255,255,255,0.85);
+      font-family: 'Sarabun', sans-serif; font-size: 0.85rem; outline: none; transition: border 0.2s;
+      resize: vertical; min-height: 70px; margin-bottom: 1.2rem;
+    }
+    .ban-reason-input:focus { border-color: rgba(255,100,100,0.4); }
+    .ban-reason-input::placeholder { color: rgba(255,255,255,0.25); }
+    .ban-confirm-btn {
+      width: 100%; padding: 0.75rem; border-radius: 10px; border: none;
+      background: linear-gradient(135deg, #c0392b, #e74c3c);
+      color: white; font-family: 'Kanit', sans-serif; font-size: 0.95rem; font-weight: 700;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .ban-confirm-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(192,57,43,0.5); }
+    .extend-box { border-color: rgba(255,165,0,0.35); }
+    .extend-box::before { background: linear-gradient(90deg, #e67e22, #f39c12, #e67e22); }
+    .extend-title { color: #f39c12 !important; }
+    .extend-confirm-btn { background: linear-gradient(135deg, #e67e22, #f39c12); }
+    .extend-confirm-btn:hover { box-shadow: 0 6px 20px rgba(230,126,34,0.5); }
+    .reduce-box { border-color: rgba(39,174,96,0.35); }
+    .reduce-box::before { background: linear-gradient(90deg, #27ae60, #55efc4, #27ae60); }
+    .reduce-title { color: #55efc4 !important; }
+    .reduce-confirm-btn { background: linear-gradient(135deg, #27ae60, #55efc4); color: #0a1628; }
+    .reduce-confirm-btn:hover { box-shadow: 0 6px 20px rgba(39,174,96,0.5); }
+    .banned-comment-item { background: rgba(192,57,43,0.07); border: 1px solid rgba(192,57,43,0.2); }
+    .private-comment-item { background: rgba(255,215,0,0.04); border: 1px solid rgba(255,215,0,0.18); }
+    .banned-badge { background: rgba(192,57,43,0.2); color: #ff8080; border: 1px solid rgba(192,57,43,0.35); font-size: 0.7rem; font-family: 'Kanit', sans-serif; font-weight: 700; padding: 0.15rem 0.6rem; border-radius: 20px; }
+    .banned-time-badge { font-size: 0.72rem; color: rgba(255,200,100,0.9); background: rgba(255,165,0,0.12); border: 1px solid rgba(255,165,0,0.2); padding: 0.15rem 0.6rem; border-radius: 20px; font-family: 'Kanit', sans-serif; }
+    .banned-reason { font-size: 0.78rem; color: rgba(255,255,255,0.45); font-style: italic; }
+    .dropdown-item.warn { color: #f39c12; }
+    .dropdown-item.warn:hover { background: rgba(230,126,34,0.12); }
+    .dropdown-item.success { color: #55efc4; }
+    .dropdown-item.success:hover { background: rgba(39,174,96,0.12); }
+    .privacy-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.85); backdrop-filter: blur(8px);
+      z-index: 800; display: flex; align-items: center; justify-content: center;
+      padding: 1rem; opacity: 0; pointer-events: none; transition: opacity 0.22s ease;
+    }
+    .privacy-overlay.open { opacity: 1; pointer-events: all; }
+    .privacy-box {
+      background: linear-gradient(135deg, #0d1f3c 0%, #0a1628 60%, #0f2244 100%);
+      border: 1px solid rgba(255,255,255,0.25);
+      border-radius: 24px;
+      max-width: 660px; width: 100%;
+      max-height: 85vh;
+      position: relative; overflow: hidden;
+      transform: scale(0.93) translateY(16px);
+      transition: transform 0.32s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.22s ease;
+      box-shadow: 0 30px 80px rgba(0,0,0,0.8);
+      display: flex; flex-direction: column;
+      opacity: 0;
+      will-change: transform, opacity;
+    }
+    .privacy-overlay.open .privacy-box { transform: scale(1) translateY(0); opacity: 1; }
+    .privacy-box::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
+      background: linear-gradient(90deg, #1a3a6b, rgba(255,255,255,0.85), #1a3a6b);
+    }
+    .privacy-header {
+      padding: 1.8rem 2rem 1rem;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      flex-shrink: 0;
+    }
+    .privacy-header h2 {
+      font-family: 'Kanit', sans-serif; font-size: 1.3rem; font-weight: 800;
+      color: var(--white); margin-bottom: 0.3rem;
+      display: flex; align-items: center; gap: 0.5rem;
+    }
+    .privacy-header p { font-size: 0.82rem; color: rgba(255,255,255,0.45); }
+    .privacy-close {
+      position: absolute; top: 1rem; right: 1rem;
+      background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2);
+      color: rgba(255,255,255,0.7); width: 34px; height: 34px; border-radius: 50%;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      font-size: 1rem; transition: all 0.2s;
+    }
+    .privacy-close:hover { background: rgba(255,255,255,0.15); transform: rotate(90deg); }
+    .privacy-body {
+      padding: 1.5rem 2rem 2rem;
+      overflow-y: auto; flex: 1;
+      scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.15) transparent;
+    }
+    .privacy-body::-webkit-scrollbar { width: 5px; }
+    .privacy-body::-webkit-scrollbar-track { background: transparent; }
+    .privacy-body::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 3px; }
+    .privacy-section { margin-bottom: 1.8rem; }
+    .privacy-section-title {
+      font-family: 'Kanit', sans-serif; font-size: 0.95rem; font-weight: 700;
+      color: var(--white); margin-bottom: 0.8rem;
+      display: flex; align-items: center; gap: 0.5rem;
+      padding-bottom: 0.5rem; border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    .privacy-text {
+      font-size: 0.87rem; color: rgba(255,255,255,0.7); line-height: 1.75;
+    }
+    .privacy-rule {
+      background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 10px; padding: 0.8rem 1rem; margin-bottom: 0.6rem;
+      font-size: 0.85rem; color: rgba(255,255,255,0.7); line-height: 1.65;
+      display: flex; gap: 0.6rem; align-items: flex-start;
+    }
+    .privacy-rule-icon { flex-shrink: 0; font-size: 1rem; margin-top: 0.05rem; }
+    .privacy-badge-anon {
+      display: inline-block;
+      background: rgba(74,127,212,0.18); color: #74b9ff;
+      border: 1px solid rgba(74,127,212,0.3);
+      font-size: 0.72rem; font-family: 'Kanit',sans-serif; font-weight: 700;
+      padding: 0.15rem 0.6rem; border-radius: 20px; margin-right: 0.3rem;
+    }
+    .privacy-badge-private {
+      display: inline-block;
+      background: rgba(255,215,0,0.12); color: rgba(255,215,0,0.9);
+      border: 1px solid rgba(255,215,0,0.25);
+      font-size: 0.72rem; font-family: 'Kanit',sans-serif; font-weight: 700;
+      padding: 0.15rem 0.6rem; border-radius: 20px; margin-right: 0.3rem;
+    }
+    .privacy-warn {
+      background: rgba(192,57,43,0.12); border: 1px solid rgba(192,57,43,0.25);
+      border-radius: 10px; padding: 0.8rem 1rem; margin-top: 0.5rem;
+      font-size: 0.83rem; color: rgba(255,140,100,0.9); line-height: 1.6;
+    }
+    .privacy-updated {
+      font-size: 0.75rem; color: rgba(255,255,255,0.3); text-align: center;
+      margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid rgba(255,255,255,0.07);
+    }
+    .comments-footer {
+      text-align: center; padding: 1rem 0 2rem;
+      display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap;
+    }
+    .footer-link {
+      font-size: 0.78rem; color: rgba(255,255,255,0.35);
+      cursor: pointer; text-decoration: underline; text-underline-offset: 2px;
+      transition: color 0.2s; background: none; border: none;
+      font-family: 'Sarabun', sans-serif;
+    }
+    .footer-link:hover { color: rgba(255,255,255,0.65); }
+    #banWall {
+      position: fixed; inset: 0; z-index: 99999;
+      background: rgba(0,0,0,0.97);
+      backdrop-filter: blur(16px);
+      display: none;
+      align-items: center; justify-content: center;
+      padding: 1rem;
+      flex-direction: column;
+    }
+    #banWall.show { display: flex; }
+    .ban-wall-box {
+      background: linear-gradient(135deg, #1a0505 0%, #2d0a0a 50%, #1a0505 100%);
+      border: 2px solid rgba(192,57,43,0.7);
+      border-radius: 24px;
+      padding: 2.5rem 2rem;
+      max-width: 460px; width: 100%;
+      text-align: center;
+      box-shadow: 0 0 80px rgba(192,57,43,0.4), 0 30px 80px rgba(0,0,0,0.9), inset 0 0 40px rgba(192,57,43,0.05);
+      position: relative; overflow: hidden;
+      animation: banWallIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+    @keyframes banWallIn {
+      from { opacity: 0; transform: scale(0.8) translateY(30px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    .ban-wall-box::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
+      background: linear-gradient(90deg, #c0392b, #ff6b6b, #c0392b);
+      animation: banBarPulse 2s ease-in-out infinite;
+    }
+    @keyframes banBarPulse {
+      0%, 100% { opacity: 1; } 50% { opacity: 0.5; }
+    }
+    .ban-wall-icon {
+      font-size: 4rem; margin-bottom: 1rem;
+      animation: banIconShake 0.5s ease-in-out;
+    }
+    @keyframes banIconShake {
+      0%, 100% { transform: rotate(0deg); }
+      20% { transform: rotate(-10deg); }
+      40% { transform: rotate(10deg); }
+      60% { transform: rotate(-8deg); }
+      80% { transform: rotate(8deg); }
+    }
+    .ban-wall-title {
+      font-family: 'Kanit', sans-serif; font-size: 1.5rem; font-weight: 900;
+      color: #ff6b6b; margin-bottom: 0.4rem;
+    }
+    .ban-wall-subtitle {
+      font-size: 0.85rem; color: rgba(255,255,255,0.45); margin-bottom: 1.5rem;
+      font-family: 'Sarabun', sans-serif;
+    }
+    .ban-wall-card {
+      background: rgba(0,0,0,0.35); border: 1px solid rgba(192,57,43,0.25);
+      border-radius: 14px; padding: 1.2rem; margin-bottom: 1.5rem;
+    }
+    .ban-wall-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 0.4rem 0; border-bottom: 1px solid rgba(255,255,255,0.05);
+      font-size: 0.85rem;
+    }
+    .ban-wall-row:last-child { border-bottom: none; padding-bottom: 0; }
+    .ban-wall-row-label { color: rgba(255,255,255,0.45); font-family: 'Kanit', sans-serif; }
+    .ban-wall-row-value { color: rgba(255,255,255,0.9); font-weight: 600; font-family: 'Kanit', sans-serif; text-align: right; max-width: 60%; word-break: break-all; }
+    .ban-wall-countdown-label {
+      font-family: 'Kanit', sans-serif; font-size: 0.8rem;
+      color: rgba(255,165,0,0.8); margin-bottom: 0.4rem;
+    }
+    .ban-wall-countdown {
+      font-family: 'Kanit', sans-serif; font-size: 2.2rem; font-weight: 900;
+      color: #ffd700; letter-spacing: 2px;
+      text-shadow: 0 0 20px rgba(255,215,0,0.5);
+      margin-bottom: 0.2rem;
+    }
+    .ban-wall-countdown.permanent {
+      font-size: 1.5rem; color: #ff6b6b;
+      text-shadow: 0 0 20px rgba(255,107,107,0.5);
+    }
+    .ban-wall-progress {
+      width: 100%; height: 6px; background: rgba(255,255,255,0.08);
+      border-radius: 3px; overflow: hidden; margin-top: 0.8rem;
+    }
+    .ban-wall-progress-bar {
+      height: 100%; border-radius: 3px;
+      background: linear-gradient(90deg, #c0392b, #ff6b6b);
+      transition: width 1s linear;
+    }
+    .ban-wall-note {
+      font-size: 0.78rem; color: rgba(255,255,255,0.3);
+      font-family: 'Sarabun', sans-serif; margin-top: 1rem; line-height: 1.5;
+    }
+    .ban-wall-lifted {
+      background: linear-gradient(135deg, #05320a 0%, #0a4a10 50%, #05320a 100%);
+      border-color: rgba(39,174,96,0.6);
+    }
+    .ban-wall-lifted::before {
+      background: linear-gradient(90deg, #27ae60, #55efc4, #27ae60);
+    }
+    .ban-wall-lifted-title { color: #55efc4; }
+    .reply-section {
+      margin-top: 0.8rem;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      padding-top: 0.8rem;
+    }
+    .reply-toggle-btn {
+      background: none; border: none;
+      color: rgba(255,255,255,0.4);
+      font-family: 'Sarabun', sans-serif;
+      font-size: 0.8rem; cursor: pointer;
+      padding: 0.2rem 0; transition: color 0.2s;
+      display: flex; align-items: center; gap: 0.4rem;
+    }
+    .reply-toggle-btn:hover { color: rgba(255,255,255,0.8); }
+    .reply-toggle-btn .reply-count-chip {
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.15);
+      padding: 0.05rem 0.45rem; border-radius: 10px;
+      font-size: 0.72rem; color: rgba(255,255,255,0.65);
+    }
+    .replies-container { display: none; margin-top: 0.8rem; }
+    .replies-container.open { display: block; }
+    .reply-item {
+      display: flex; gap: 0.6rem;
+      margin-bottom: 0.7rem;
+      padding: 0.7rem 0.9rem;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.05);
+      border-radius: 12px;
+      animation: slideIn 0.3s ease;
+    }
+    .reply-avatar {
+      width: 30px; height: 30px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--royal), var(--accent));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.8rem; flex-shrink: 0;
+      overflow: hidden; border: 1.5px solid rgba(255,255,255,0.12);
+    }
+    .reply-avatar img { width:100%;height:100%;object-fit:cover;border-radius:50%; }
+    .reply-body { flex: 1; }
+    .reply-author-row {
+      display: flex; align-items: center; gap: 0.4rem;
+      margin-bottom: 0.25rem; flex-wrap: wrap;
+    }
+    .reply-author-name { font-size: 0.82rem; font-weight: 700; }
+    .reply-time { font-size: 0.7rem; color: rgba(255,255,255,0.3); }
+    .reply-text { font-size: 0.88rem; color: rgba(255,255,255,0.8); line-height: 1.6; }
+    .reply-delete-btn {
+      background: none; border: none; cursor: pointer;
+      color: rgba(255,255,255,0.2); font-size: 0.85rem;
+      padding: 0.1rem 0.3rem; border-radius: 4px;
+      transition: all 0.2s; margin-left: auto; flex-shrink: 0;
+      align-self: flex-start;
+    }
+    .reply-delete-btn:hover { color: #ff6b6b; background: rgba(255,50,50,0.1); }
+    .reply-input-row {
+      display: flex; gap: 0.5rem; align-items: flex-end;
+      margin-top: 0.6rem;
+    }
+    .reply-input {
+      flex: 1;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 10px; padding: 0.55rem 0.9rem;
+      color: var(--white); font-family: 'Sarabun', sans-serif;
+      font-size: 0.88rem; resize: none; outline: none;
+      transition: border 0.2s; min-height: 38px; max-height: 120px;
+    }
+    .reply-input:focus { border-color: rgba(255,255,255,0.3); }
+    .reply-input::placeholder { color: rgba(255,255,255,0.25); }
+    .reply-send-btn {
+      background: linear-gradient(135deg, #1a3a6b, #2563b0);
+      color: white; border: none; border-radius: 10px;
+      padding: 0.55rem 1rem; font-family: 'Kanit', sans-serif;
+      font-size: 0.82rem; font-weight: 700; cursor: pointer;
+      transition: all 0.2s; white-space: nowrap; flex-shrink: 0;
+    }
+    .reply-send-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(37,99,176,0.5); }
+    .reply-send-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    .reply-login-hint {
+      font-size: 0.78rem; color: rgba(255,255,255,0.3);
+      font-family: 'Sarabun', sans-serif; margin-top: 0.5rem;
+    }
+    #policy {
+      background: linear-gradient(180deg, #0a1628 0%, #0d1f3c 60%, #0a1628 100%);
+      min-height: 100vh;
+    }
+    .policy-hero {
+      text-align: center;
+      padding: 3.5rem 1.5rem 2.5rem;
+      background: linear-gradient(180deg, rgba(26,58,107,0.5) 0%, transparent 100%);
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+      position: relative;
+      overflow: hidden;
+    }
+    .policy-hero::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: repeating-linear-gradient(
+        60deg, transparent, transparent 80px,
+        rgba(255,200,60,0.02) 80px, rgba(255,200,60,0.02) 81px
+      );
+      pointer-events: none;
+    }
+    .policy-hero-icon {
+      font-size: 3.2rem;
+      margin-bottom: 1rem;
+      display: block;
+      filter: drop-shadow(0 0 18px rgba(255,200,60,0.4));
+      animation: float 4s ease-in-out infinite;
+    }
+    .policy-hero h1 {
+      font-family: 'Kanit', sans-serif;
+      font-size: clamp(1.8rem, 5vw, 3rem);
+      font-weight: 900;
+      color: var(--white);
+      text-shadow: 0 0 40px rgba(255,200,60,0.2);
+      margin-bottom: 0.5rem;
+    }
+    .policy-hero p {
+      color: rgba(255,255,255,0.5);
+      font-size: 0.95rem;
+      max-width: 520px;
+      margin: 0 auto;
+      line-height: 1.7;
+    }
+    .policy-gold-line {
+      width: 90px; height: 3px;
+      background: linear-gradient(90deg, transparent, rgba(255,200,60,0.7), transparent);
+      margin: 1.2rem auto;
+      border-radius: 2px;
+    }
+    .policy-container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 2.5rem 1.5rem 4rem;
+    }
+    .policy-card {
+      position: relative;
+      background: linear-gradient(135deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.02) 100%);
+      border: 1px solid rgba(255,255,255,0.09);
+      border-radius: 20px;
+      padding: 2rem 2rem 2rem 5rem;
+      margin-bottom: 1.5rem;
+      overflow: hidden;
+      transition: transform 0.3s, box-shadow 0.3s, border-color 0.3s;
+      cursor: default;
+    }
+    .policy-card::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 4px;
+      background: var(--policy-color, linear-gradient(180deg, #ffd060, #ffaa20));
+      border-radius: 4px 0 0 4px;
+    }
+    .policy-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.3);
+      border-color: rgba(255,255,255,0.16);
+    }
+    .policy-number {
+      position: absolute;
+      left: 1.4rem;
+      top: 1.8rem;
+      width: 2.2rem; height: 2.2rem;
+      border-radius: 50%;
+      background: var(--policy-bg, rgba(255,200,60,0.15));
+      border: 1.5px solid var(--policy-border, rgba(255,200,60,0.4));
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Kanit', sans-serif;
+      font-size: 0.9rem; font-weight: 800;
+      color: var(--policy-text-color, rgba(255,200,60,0.95));
+    }
+    .policy-emoji {
+      position: absolute;
+      right: 1.6rem; top: 1.6rem;
+      font-size: 1.8rem;
+      opacity: 0.18;
+    }
+    .policy-title {
+      font-family: 'Kanit', sans-serif;
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: var(--white);
+      margin-bottom: 0.7rem;
+      line-height: 1.3;
+      letter-spacing: 0.2px;
+    }
+    .policy-title-accent {
+      display: inline-block;
+      padding: 0.15rem 0.7rem;
+      border-radius: 20px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      margin-left: 0.5rem;
+      vertical-align: middle;
+      background: var(--policy-badge-bg, rgba(255,200,60,0.15));
+      color: var(--policy-badge-color, rgba(255,200,60,0.9));
+      border: 1px solid var(--policy-badge-border, rgba(255,200,60,0.3));
+    }
+    .policy-desc {
+      color: rgba(255,255,255,0.65);
+      font-size: 0.93rem;
+      line-height: 1.8;
+    }
+    .policy-desc ul {
+      margin: 0.6rem 0 0 0;
+      padding-left: 1.2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+    }
+    .policy-desc ul li { color: rgba(255,255,255,0.6); }
+    .policy-footer-note {
+      text-align: center;
+      color: rgba(255,255,255,0.3);
+      font-size: 0.82rem;
+      margin-top: 2.5rem;
+      padding: 1.5rem;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      line-height: 1.7;
+    }
+    @media (max-width: 720px) {
+      .members-grid { grid-template-columns: repeat(2, 1fr); gap: 1rem; padding: 1rem; }
+      .top-nav { padding: 0.7rem 1rem; }
+    }
+    @media (max-width: 600px) {
+      #lobby { padding: 2rem 1.2rem; justify-content: center; }
+      .lobby-seal { width: 100px; height: 100px; font-size: 2.4rem; margin-bottom: 1rem; }
+      .lobby-school { font-size: 0.72rem; letter-spacing: 2px; text-align: center; }
+      .lobby-title { font-size: clamp(1.7rem, 9vw, 2.4rem); margin-bottom: 0.4rem; }
+      .lobby-sub { font-size: 0.85rem; padding: 0 0.5rem; margin-bottom: 2rem; }
+      .lobby-social { gap: 0.6rem; margin-bottom: 1.5rem; }
+      .social-link { padding: 0.45rem 0.9rem; font-size: 0.8rem; }
+      .social-label { font-size: 0.78rem; }
+      .social-handle { font-size: 0.65rem; }
+      .lobby-buttons { flex-direction: column; align-items: center; gap: 0.9rem; }
+      .btn-lobby { width: min(280px, 90vw); justify-content: center; font-size: 0.95rem; padding: 0.9rem 1.5rem; }
+      .top-nav { padding: 0.6rem 0.9rem; gap: 0.6rem; }
+      .nav-back { font-size: 0.82rem; padding: 0.35rem 0.75rem; }
+      .nav-title { font-size: 0.88rem; }
+      .members-hero { padding: 2rem 1rem 1.5rem; }
+      .members-hero h1 { font-size: clamp(1.4rem, 6vw, 2rem); }
+      .members-grid { grid-template-columns: repeat(2, 1fr); gap: 0.75rem; padding: 0 0.9rem 1.5rem; }
+      .member-card { padding: 1.2rem 1rem; border-radius: 16px; }
+      .member-avatar { width: 70px; height: 70px; font-size: 1.8rem; margin-bottom: 0.7rem; }
+      .member-card.president .member-avatar { width: 80px; height: 80px; }
+      .member-role-badge { font-size: 0.65rem; padding: 0.2rem 0.7rem; }
+      .member-name { font-size: 0.95rem; }
+      .member-dept { font-size: 0.75rem; }
+      .member-motto { font-size: 0.75rem; }
+      .section-label { padding: 0 0.9rem; margin: 1.5rem auto 1rem; }
+      .section-label-text { font-size: 0.72rem; letter-spacing: 1.5px; }
+      .modal-body { flex-direction: column; padding: 1.4rem; padding-top: 1.8rem; }
+      .modal-box { border-radius: 20px; margin: 0.5rem; }
+      .modal-photo-panel {
+        width: 100%; flex-direction: row; padding-right: 0;
+        border-right: none; border-bottom: 1px solid rgba(255,255,255,0.1);
+        padding-bottom: 1rem; margin-right: 0; margin-bottom: 1.2rem;
+        gap: 1rem; align-items: flex-start;
+      }
+      .modal-photo { width: 90px; height: 108px; flex-shrink: 0; font-size: 2.5rem; }
+      .modal-photo-input-area { width: auto; flex: 1; }
+      .modal-fullname { font-size: 1.1rem; }
+      .modal-nickname { font-size: 0.82rem; }
+      .modal-info-row { font-size: 0.82rem; }
+      .policy-hero { padding: 2rem 1rem 1.5rem; }
+      .policy-hero h1 { font-size: clamp(1.4rem, 6vw, 2rem) !important; }
+      .policy-container { padding: 0 0.9rem 3rem; }
+      .policy-card { padding: 1.3rem 1rem 1.3rem 4rem !important; border-radius: 16px !important; margin-bottom: 1rem !important; }
+      .policy-number { left: 1rem; top: 1.3rem; width: 1.9rem; height: 1.9rem; font-size: 0.82rem; }
+      .policy-emoji { right: 1rem; top: 1rem; font-size: 1.5rem; }
+      .policy-title { font-size: 1rem; }
+      .comments-hero { padding: 2rem 1rem 1.5rem; }
+      .comments-hero h1 { font-size: clamp(1.4rem, 6vw, 2rem); }
+      .comment-container { padding: 0 0.9rem 4rem; }
+      .comment-form-box { padding: 1.4rem 1.1rem; border-radius: 16px; }
+      .form-row { grid-template-columns: 1fr; gap: 0.7rem; }
+      .form-title { font-size: 1rem; }
+      .type-tags { gap: 0.4rem; }
+      .type-tag { font-size: 0.75rem; padding: 0.25rem 0.7rem; }
+      .comment-item { padding: 1rem 1.1rem; border-radius: 14px; }
+      .comment-author { font-size: 0.85rem; flex-wrap: wrap; gap: 0.3rem; }
+      .comment-text { font-size: 0.9rem; }
+      .filter-tabs { gap: 0.35rem; }
+      .filter-tab { font-size: 0.75rem; padding: 0.3rem 0.75rem; }
+      .user-info { padding: 0.4rem 0.9rem; gap: 0.5rem; }
+      .user-name { font-size: 0.82rem; }
+      .user-uid-badge { max-width: 120px; font-size: 0.6rem; }
+      .toast { bottom: 1rem; right: 1rem; left: 1rem; text-align: center; font-size: 0.85rem; }
+      .reply-input-row { gap: 0.4rem; }
+      .reply-input { font-size: 0.85rem; }
+      .reply-send-btn { font-size: 0.82rem; padding: 0.4rem 0.7rem; }
+    }
+    @media (max-width: 380px) {
+      .members-grid { grid-template-columns: 1fr; }
+      .lobby-title { font-size: 1.6rem; }
+      .modal-photo { width: 76px; height: 92px; }
+      .btn-lobby { width: 92vw; }
+    }
+
+    /* ===== ENHANCED UI IMPROVEMENTS ===== */
+    
+    /* Max-width container for large screens */
+    .lobby-content-wrap {
+      position: relative; z-index: 2;
+      display: flex; flex-direction: column; align-items: center;
+      width: 100%; padding: 2rem 1.5rem;
+    }
+
+    /* Stats section on lobby */
+    .lobby-stats {
+      display: flex; gap: 2rem; margin-bottom: 2.5rem;
+      flex-wrap: wrap; justify-content: center;
+      opacity: 0; animation: fadeUp 0.8s forwards 0.65s;
+    }
+    .stat-item {
+      text-align: center;
+      padding: 0.6rem 1.2rem;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 14px;
+      min-width: 80px;
+    }
+    .stat-num {
+      font-family: 'Kanit', sans-serif; font-size: 1.5rem; font-weight: 900;
+      background: linear-gradient(135deg, #ffffff, rgba(74,141,232,0.9));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .stat-label {
+      font-size: 0.72rem; color: rgba(255,255,255,0.5);
+      letter-spacing: 0.5px;
+    }
+
+    /* Announcement banner */
+    .announcement-banner {
+      background: linear-gradient(135deg, rgba(255,200,60,0.12), rgba(255,160,30,0.08));
+      border: 1px solid rgba(255,200,60,0.3);
+      border-radius: 14px; padding: 0.75rem 1.2rem;
+      display: flex; align-items: center; gap: 0.8rem;
+      margin-bottom: 2rem; max-width: 540px; width: 100%;
+      opacity: 0; animation: fadeUp 0.8s forwards 0.55s;
+    }
+    .announcement-icon { font-size: 1.2rem; flex-shrink: 0; }
+    .announcement-text {
+      font-family: 'Kanit', sans-serif; font-size: 0.88rem;
+      color: rgba(255,215,100,0.95); line-height: 1.4;
+    }
+    .announcement-text strong { font-weight: 800; }
+
+    /* Page max-width wrapper */
+    .page-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    /* Enhanced member cards */
+    .members-grid { max-width: 1000px; }
+    
+    /* Category tags for comments */
+    .category-badge {
+      display: inline-flex; align-items: center; gap: 0.3rem;
+      padding: 0.2rem 0.65rem; border-radius: 20px;
+      font-family: 'Kanit', sans-serif; font-size: 0.7rem; font-weight: 700;
+      letter-spacing: 0.3px;
+    }
+    .cat-news { background: rgba(52,152,219,0.18); color: #74b9ff; border: 1px solid rgba(52,152,219,0.3); }
+    .cat-activity { background: rgba(39,174,96,0.18); color: #55efc4; border: 1px solid rgba(39,174,96,0.3); }
+    .cat-announce { background: rgba(255,200,60,0.15); color: rgba(255,215,100,0.95); border: 1px solid rgba(255,200,60,0.3); }
+
+    /* Enhanced nav */
+    .top-nav {
+      max-width: 100%;
+      gap: 0.75rem;
+    }
+    .nav-breadcrumb {
+      display: flex; align-items: center; gap: 0.4rem;
+      font-family: 'Kanit', sans-serif; font-size: 0.78rem;
+      color: rgba(255,255,255,0.4);
+    }
+    .nav-breadcrumb span { color: rgba(255,255,255,0.25); }
+    .nav-breadcrumb strong { color: rgba(255,255,255,0.75); }
+    .nav-right-actions { margin-left: auto; display: flex; align-items: center; gap: 0.5rem; }
+    .nav-action-btn {
+      background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.14);
+      color: rgba(255,255,255,0.6); padding: 0.35rem 0.8rem;
+      border-radius: 20px; font-family: 'Kanit', sans-serif; font-size: 0.78rem;
+      cursor: pointer; transition: all 0.2s; text-decoration: none;
+      display: inline-flex; align-items: center; gap: 0.3rem;
+    }
+    .nav-action-btn:hover { background: rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.3); color: white; }
+
+    /* View all button */
+    .view-all-btn {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.14);
+      color: rgba(255,255,255,0.65); padding: 0.4rem 1rem;
+      border-radius: 20px; font-family: 'Kanit', sans-serif; font-size: 0.82rem;
+      cursor: pointer; transition: all 0.2s; margin-top: 1rem;
+    }
+    .view-all-btn:hover { background: rgba(255,255,255,0.1); color: white; border-color: rgba(255,255,255,0.3); }
+
+    /* Section title with see-all */
+    .section-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 1rem;
+    }
+    .section-title-main {
+      font-family: 'Kanit', sans-serif; font-size: 1.05rem; font-weight: 700;
+      color: var(--white); display: flex; align-items: center; gap: 0.5rem;
+    }
+
+    /* Achievement stats on members page */
+    .achievement-strip {
+      background: rgba(26,58,107,0.25);
+      border-top: 1px solid rgba(255,255,255,0.06);
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      padding: 1.2rem 2rem;
+      display: flex; justify-content: center; gap: 3rem;
+      flex-wrap: wrap;
+      margin-bottom: 0.5rem;
+    }
+    .ach-item { text-align: center; }
+    .ach-num {
+      font-family: 'Kanit', sans-serif; font-size: 1.8rem; font-weight: 900;
+      background: linear-gradient(135deg, #ffffff 30%, rgba(74,141,232,0.9));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      line-height: 1.1;
+    }
+    .ach-label { font-size: 0.75rem; color: rgba(255,255,255,0.45); margin-top: 0.15rem; }
+
+    /* Monthly highlight on members page */
+    .highlight-section {
+      max-width: 960px; margin: 0 auto 1rem;
+      padding: 0 2rem;
+    }
+    .highlight-card {
+      background: linear-gradient(135deg, rgba(255,200,60,0.1), rgba(255,160,30,0.06));
+      border: 1px solid rgba(255,200,60,0.25);
+      border-radius: 18px; padding: 1.4rem 1.6rem;
+      display: flex; gap: 1.2rem; align-items: flex-start;
+    }
+    .highlight-badge {
+      background: linear-gradient(135deg, rgba(255,200,60,0.25), rgba(255,160,30,0.2));
+      border: 1px solid rgba(255,200,60,0.4);
+      border-radius: 12px; padding: 0.6rem 0.9rem;
+      font-size: 1.8rem; flex-shrink: 0; line-height: 1;
+    }
+    .highlight-content { flex: 1; }
+    .highlight-label {
+      font-family: 'Kanit', sans-serif; font-size: 0.7rem; font-weight: 700;
+      letter-spacing: 2px; color: rgba(255,200,60,0.75); text-transform: uppercase;
+      margin-bottom: 0.3rem;
+    }
+    .highlight-title {
+      font-family: 'Kanit', sans-serif; font-size: 1.1rem; font-weight: 800;
+      color: rgba(255,230,120,0.95); margin-bottom: 0.4rem; line-height: 1.3;
+    }
+    .highlight-desc { font-size: 0.85rem; color: rgba(255,255,255,0.55); line-height: 1.6; }
+
+    /* Latest news section */
+    .latest-news-section {
+      max-width: 960px; margin: 0 auto 2rem;
+      padding: 0 2rem;
+    }
+    .news-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem;
+    }
+    .news-card {
+      background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 14px; padding: 1.1rem;
+      transition: all 0.25s; cursor: default;
+      display: flex; flex-direction: column;
+    }
+    .news-card:hover { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.16); transform: translateY(-3px); }
+    .news-card-tag {
+      margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.4rem;
+    }
+    .news-card-title {
+      font-family: 'Kanit', sans-serif; font-size: 0.92rem; font-weight: 700;
+      color: var(--white); margin-bottom: 0.4rem; line-height: 1.4;
+    }
+    .news-card-desc { font-size: 0.82rem; color: rgba(255,255,255,0.5); line-height: 1.6; flex: 1; }
+    .news-card-date { font-size: 0.72rem; color: rgba(255,255,255,0.3); margin-top: 0.7rem; padding-top: 0.7rem; border-top: 1px solid rgba(255,255,255,0.06); }
+
+    /* Comment section enhanced */
+    .comment-container { max-width: 780px; }
+    
+    /* Responsive improvements */
+    @media (max-width: 768px) {
+      .news-grid { grid-template-columns: 1fr; }
+      .achievement-strip { gap: 1.5rem; padding: 1rem; }
+      .highlight-section, .latest-news-section { padding: 0 1rem; }
+      .stat-item { min-width: 65px; padding: 0.5rem 0.8rem; }
+      .lobby-stats { gap: 0.8rem; }
+      .announcement-banner { margin-bottom: 1.5rem; }
+      .highlight-card { flex-direction: column; gap: 0.8rem; }
+    }
+    @media (max-width: 600px) {
+      .news-grid { grid-template-columns: 1fr; }
+      .achievement-strip { gap: 1.2rem; padding: 0.8rem; }
+      .ach-num { font-size: 1.4rem; }
+    }
+    @media (min-width: 1200px) {
+      .members-grid { gap: 2rem; }
+      .comment-container { padding: 0 2rem 4rem; }
+    }
+  /* lobby-reset: force opacity:1 on lobby elements when returning */
+  #lobby.lobby-reset .lobby-school  { animation: none !important; opacity: 1 !important; }
+  #lobby.lobby-reset .lobby-title   { animation: none !important; opacity: 1 !important; }
+  #lobby.lobby-reset .lobby-sub     { animation: none !important; opacity: 1 !important; }
+  #lobby.lobby-reset .lobby-buttons { animation: none !important; opacity: 1 !important; }
+  #lobby.lobby-reset .lobby-social  { animation: none !important; opacity: 1 !important; }
+  #lobby.lobby-reset .lobby-stats   { animation: none !important; opacity: 1 !important; }
+  #lobby.lobby-reset .floating-support { animation: none !important; opacity: 1 !important; }
+  </style>
+</head>
+<body>
+<div id="lobby" class="page active">
+  <div class="stars" id="starsContainer"></div>
+  <div class="lobby-decor decor1"></div>
+  <div class="lobby-decor decor2"></div>
+  <div class="lobby-decor decor3"></div>
+  <div class="lobby-seal" id="lobbySeal">
+    <img id="sealImg" src="" alt="" style="display:none" onerror="this.style.display='none';document.getElementById('sealEmoji').style.display='block'" />
+    <span class="seal-emoji" id="sealEmoji">🗳️</span>
+  </div>
+  <div class="lobby-school">โรงเรียนสารสาสน์วิเทศสมุทรสาคร</div>
+  <h1 class="lobby-title">SARASAS PROMAX</h1>
+  <p class="lobby-sub">🗳️ สมัครเลือกตั้งสภานักเรียน ปีการศึกษา 2569 · ร่วมผลักดันการเปลี่ยนแปลงไปด้วยกัน</p>
+  <div class="announcement-banner">
+    <span class="announcement-icon">📣</span>
+    <div class="announcement-text">
+      <strong>ประกาศสำคัญ:</strong> วันเลือกตั้งสภานักเรียน ปีการศึกษา 2569 — ร่วมใช้สิทธิ์ของคุณ!
+    </div>
+  </div>
+  <div class="lobby-stats">
+    <div class="stat-item">
+      <div class="stat-num">15</div>
+      <div class="stat-label">ผู้สมัคร</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">5</div>
+      <div class="stat-label">นโยบาย</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">2569</div>
+      <div class="stat-label">ปีการศึกษา</div>
+    </div>
+  </div>
+  <div class="lobby-social">
+    <a href="https://www.instagram.com/" target="_blank" class="social-link social-ig">
+      <svg class="social-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="2" y="2" width="20" height="20" rx="5" ry="5" stroke="currentColor" stroke-width="2"/>
+        <circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="2"/>
+        <circle cx="17.5" cy="6.5" r="1" fill="currentColor"/>
+      </svg>
+      <div class="social-text">
+        <span class="social-label">Instagram</span>
+        <span class="social-handle">ของพรรคเรา</span>
+      </div>
+    </a>
+    <a href="https://www.facebook.com/" target="_blank" class="social-link social-fb">
+      <svg class="social-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <div class="social-text">
+        <span class="social-label">Facebook</span>
+        <span class="social-handle">ของพรรคเรา</span>
+      </div>
+    </a>
+  </div>
+  <div class="lobby-buttons">
+    <button class="btn-lobby btn-primary" onclick="goTo('members')">
+      👥 ทีมผู้สมัครของเรา
+    </button>
+    <button class="btn-lobby btn-primary" onclick="goTo('comments')">
+      💬 ร่วมแสดงความคิดเห็น
+    </button>
+    <button class="btn-lobby btn-primary" onclick="goTo('policy')">
+      📜 นโยบายหาเสียง
+    </button>
+  </div>
+</div>
+<div id="policy" class="page">
+  <nav class="top-nav">
+    <button class="nav-back" onclick="goTo('lobby')">← กลับ</button>
+    <div class="nav-breadcrumb"><span>หน้าหลัก</span> › <strong>นโยบาย</strong></div>
+    <div class="nav-right-actions">
+      <button class="nav-action-btn" onclick="goTo('members')">👥 ทีมเรา</button>
+    </div>
+  </nav>
+  <div class="policy-hero">
+    <span class="policy-hero-icon">📢</span>
+    <h1>นโยบาย 5 ด้านของเรา</h1>
+    <div class="policy-gold-line"></div>
+    <p>ทีม SARASAS PROMAX สมัครเลือกตั้งสภานักเรียน ปีการศึกษา 2569<br/>ถ้าได้รับความไว้วางใจ เราสัญญาว่าจะทำสิ่งเหล่านี้ให้เป็นจริง</p>
+  </div>
+  <div class="policy-container">
+    <div class="policy-card" style="--policy-color:linear-gradient(180deg,#ffd060,#ffaa20);--policy-bg:rgba(255,200,60,0.12);--policy-border:rgba(255,200,60,0.4);--policy-text-color:rgba(255,200,60,0.95);--policy-badge-bg:rgba(255,200,60,0.12);--policy-badge-color:rgba(255,200,60,0.9);--policy-badge-border:rgba(255,200,60,0.3)">
+      <div class="policy-number">1</div>
+      <span class="policy-emoji">📚</span>
+      <div class="policy-title">นโยบายด้านวิชาการ <span class="policy-title-accent">Academic</span></div>
+      <div class="policy-desc">
+        ส่งเสริมการเรียนรู้และพัฒนาศักยภาพทางวิชาการของนักเรียนทุกระดับชั้น ให้มีความพร้อมในการแข่งขัน และมีทักษะที่จำเป็นในศตวรรษที่ 21
+        <ul>
+          <li>จัดกิจกรรมติวเสริมและแลกเปลี่ยนความรู้ระหว่างรุ่นพี่–รุ่นน้อง</li>
+          <li>ผลักดันห้องสมุดและพื้นที่การเรียนรู้ให้ทันสมัยและเข้าถึงง่าย</li>
+          <li>สนับสนุนการส่งนักเรียนเข้าแข่งขันทางวิชาการทั้งระดับภูมิภาคและระดับประเทศ</li>
+        </ul>
+      </div>
+    </div>
+    <div class="policy-card" style="--policy-color:linear-gradient(180deg,#74b9ff,#0984e3);--policy-bg:rgba(116,185,255,0.12);--policy-border:rgba(116,185,255,0.4);--policy-text-color:rgba(116,185,255,0.95);--policy-badge-bg:rgba(116,185,255,0.12);--policy-badge-color:rgba(116,185,255,0.9);--policy-badge-border:rgba(116,185,255,0.3)">
+      <div class="policy-number">2</div>
+      <span class="policy-emoji">🎨</span>
+      <div class="policy-title">นโยบายด้านกิจกรรมและความคิดสร้างสรรค์ <span class="policy-title-accent">Activities</span></div>
+      <div class="policy-desc">
+        สนับสนุนกิจกรรมนอกห้องเรียนที่หลากหลาย เพื่อให้นักเรียนได้ค้นพบความสามารถพิเศษของตนเอง และเปิดโอกาสให้ทุกคนได้แสดงออก
+        <ul>
+          <li>จัดงานนิทรรศการและเวทีแสดงความสามารถประจำปี</li>
+          <li>เพิ่มชมรมและกิจกรรม Extracurricular ที่ตรงความต้องการของนักเรียน</li>
+          <li>สร้างพื้นที่สร้างสรรค์ให้นักเรียนได้ริเริ่มโครงการของตนเอง</li>
+        </ul>
+      </div>
+    </div>
+    <div class="policy-card" style="--policy-color:linear-gradient(180deg,#55efc4,#00b894);--policy-bg:rgba(85,239,196,0.1);--policy-border:rgba(85,239,196,0.38);--policy-text-color:rgba(85,239,196,0.95);--policy-badge-bg:rgba(85,239,196,0.1);--policy-badge-color:rgba(85,239,196,0.9);--policy-badge-border:rgba(85,239,196,0.3)">
+      <div class="policy-number">3</div>
+      <span class="policy-emoji">❤️</span>
+      <div class="policy-title">นโยบายด้านสุขภาวะและความเป็นอยู่ที่ดี <span class="policy-title-accent">Well-being</span></div>
+      <div class="policy-desc">
+        ใส่ใจสุขภาพกายและสุขภาพจิตของนักเรียนทุกคน สร้างสภาพแวดล้อมโรงเรียนที่ปลอดภัย อบอุ่น และเป็นมิตร
+        <ul>
+          <li>ผลักดันมาตรการป้องกันการกลั่นแกล้ง (Anti-Bullying) อย่างเป็นรูปธรรม</li>
+          <li>จัดกิจกรรมส่งเสริมสุขภาพจิตและพื้นที่ระบาย–ปรึกษาปัญหา</li>
+          <li>ดูแลความสะอาดและความปลอดภัยของพื้นที่ส่วนกลางในโรงเรียน</li>
+        </ul>
+      </div>
+    </div>
+    <div class="policy-card" style="--policy-color:linear-gradient(180deg,#fd79a8,#e84393);--policy-bg:rgba(253,121,168,0.1);--policy-border:rgba(253,121,168,0.38);--policy-text-color:rgba(253,121,168,0.95);--policy-badge-bg:rgba(253,121,168,0.1);--policy-badge-color:rgba(253,121,168,0.9);--policy-badge-border:rgba(253,121,168,0.3)">
+      <div class="policy-number">4</div>
+      <span class="policy-emoji">🤝</span>
+      <div class="policy-title">นโยบายด้านความสัมพันธ์และชุมชน <span class="policy-title-accent">Community</span></div>
+      <div class="policy-desc">
+        เสริมสร้างความสัมพันธ์อันดีระหว่างนักเรียน ครู ผู้ปกครอง และชุมชน เพื่อสร้างวัฒนธรรมโรงเรียนที่เข้มแข็งและอบอุ่น
+        <ul>
+          <li>เปิดช่องทางสื่อสารระหว่างนักเรียนกับฝ่ายบริหารอย่างโปร่งใส</li>
+          <li>จัดโครงการบำเพ็ญประโยชน์และกิจกรรมเพื่อชุมชนโดยรอบ</li>
+          <li>ส่งเสริมความสามัคคีระหว่างรุ่นพี่–รุ่นน้องทุกระดับชั้น</li>
+        </ul>
+      </div>
+    </div>
+    <div class="policy-card" style="--policy-color:linear-gradient(180deg,#a29bfe,#6c5ce7);--policy-bg:rgba(162,155,254,0.1);--policy-border:rgba(162,155,254,0.38);--policy-text-color:rgba(162,155,254,0.95);--policy-badge-bg:rgba(162,155,254,0.1);--policy-badge-color:rgba(162,155,254,0.9);--policy-badge-border:rgba(162,155,254,0.3)">
+      <div class="policy-number">5</div>
+      <span class="policy-emoji">🌿</span>
+      <div class="policy-title">นโยบายด้านสิ่งแวดล้อมและเทคโนโลยี <span class="policy-title-accent">Green & Tech</span></div>
+      <div class="policy-desc">
+        ปลูกฝังจิตสำนึกรักสิ่งแวดล้อม ควบคู่กับการนำเทคโนโลยีมาใช้ยกระดับคุณภาพชีวิตนักเรียนในโรงเรียน
+        <ul>
+          <li>รณรงค์ลดขยะ คัดแยกขยะ และลด Single-use plastic ในโรงเรียน</li>
+          <li>สนับสนุนการนำเทคโนโลยีและ Digital Tools มาใช้ในกิจกรรมหาเสียง</li>
+          <li>พัฒนาพื้นที่สีเขียวและสวนโรงเรียนให้น่าอยู่และน่าเรียนมากขึ้น</li>
+        </ul>
+      </div>
+    </div>
+    <div class="policy-footer-note">
+      ทีม SARASAS PROMAX สมัครเลือกตั้งสภานักเรียน ปีการศึกษา 2569<br/>
+      นโยบายทั้ง 5 ด้านนี้คือสิ่งที่เราตั้งใจจะทำเพื่อทุกคนอย่างจริงจัง<br/>
+      <span style="color:rgba(255,255,255,0.2)">เลือกเราเพื่อเสียงของทุกคน 💙</span>
+    </div>
+  </div>
+</div>
+<div id="members" class="page">
+  <nav class="top-nav">
+    <button class="nav-back" onclick="goTo('lobby')">← กลับ</button>
+    <div class="nav-breadcrumb"><span>หน้าหลัก</span> › <strong>ทีมผู้สมัคร</strong></div>
+    <div class="nav-right-actions">
+      <button class="nav-action-btn" onclick="goTo('policy')">📜 นโยบาย</button>
+    </div>
+  </nav>
+  <div class="members-hero">
+    <h1>ทีมผู้สมัครสภานักเรียน</h1>
+    <div class="gold-line"></div>
+    <p>โรงเรียนสารสาสน์วิเทศสมุทรสาคร · สมัครเลือกตั้ง ปีการศึกษา 2569</p>
+  </div>
+  <div class="achievement-strip">
+    <div class="ach-item">
+      <div class="ach-num">15</div>
+      <div class="ach-label">ผู้สมัครทั้งหมด</div>
+    </div>
+    <div class="ach-item">
+      <div class="ach-num">2</div>
+      <div class="ach-label">ระดับชั้น</div>
+    </div>
+    <div class="ach-item">
+      <div class="ach-num">7</div>
+      <div class="ach-label">ฝ่ายงาน</div>
+    </div>
+    <div class="ach-item">
+      <div class="ach-num">5</div>
+      <div class="ach-label">นโยบาย</div>
+    </div>
+  </div>
+  <div class="highlight-section">
+    <div class="highlight-card">
+      <div class="highlight-badge">⭐</div>
+      <div class="highlight-content">
+        <div class="highlight-label">กิจกรรมเด่นประจำเดือน</div>
+        <div class="highlight-title">หาเสียงสภานักเรียน ปีการศึกษา 2569</div>
+        <div class="highlight-desc">ทีม SARASAS PROMAX พร้อมนำเสนอนโยบาย 5 ด้าน เพื่อพัฒนาโรงเรียนให้ดียิ่งขึ้น ร่วมแสดงความคิดเห็นและติดตามเราได้ที่ช่องทางโซเชียลมีเดีย</div>
+      </div>
+    </div>
+  </div>
+  <div class="section-label">
+    <div class="section-label-line"></div>
+    <div class="section-label-text">🎓 ผู้สมัคร ชั้น มอปลาย</div>
+    <div class="section-label-line right"></div>
+  </div>
+  <div class="members-grid">
+    <div class="member-card president" id="card-president" onclick="openProfile('president')" style="grid-column:1/-1;max-width:300px;margin:0 auto;width:100%">
+      <div class="member-avatar">
+        <img src="" alt="" onerror="this.style.display='none'" style="display:none" />
+        <span class="avatar-emoji">👑</span>
+      </div>
+      <div class="member-role-badge">ผู้สมัครประธานนักเรียน</div>
+      <div class="member-name">สุภัทรตรา จิรโชติเมธากุล</div>
+      <div class="member-dept">ผู้สมัครตำแหน่งประธานนักเรียน</div>
+      <div class="member-motto">"เพื่อน้องๆ ทุกคน เราจะทำให้ดีที่สุด!"</div>
+      <div class="card-click-hint">แตะเพื่อดูข้อมูล ›</div>
+    </div>
+    <div class="member-card" id="card-vp1" onclick="openProfile('vp1')">
+      <div class="member-avatar"><span class="avatar-emoji">⭐</span></div>
+      <div class="member-role-badge">รองประธาน คนที่ 1</div>
+      <div class="member-name">รองประธานฝ่ายวิชาการ</div>
+      <div class="member-dept">ฝ่ายวิชาการ</div>
+      <div class="member-motto">"เรียนดี มีคุณภาพ"</div>
+      <div class="card-click-hint">แตะเพื่อดูข้อมูล ›</div>
+    </div>
+    <div class="member-card" id="card-vp2" onclick="openProfile('vp2')">
+      <div class="member-avatar"><span class="avatar-emoji">🌟</span></div>
+      <div class="member-role-badge">รองประธาน คนที่ 2</div>
+      <div class="member-name">ชาหิส์ดา เชาว์ดารี</div>
+      <div class="member-dept">ฝ่ายกิจกรรม</div>
+      <div class="member-motto">"สนุกกับทุกกิจกรรม"</div>
+      <div class="card-click-hint">แตะเพื่อดูข้อมูล ›</div>
+    </div>
+    <div class="member-card" id="card-academic" onclick="openProfile('academic')">
+      <div class="member-avatar"><span class="avatar-emoji">📚</span></div>
+      <div class="member-role-badge">หัวหน้าฝ่าย</div>
+      <div class="member-name">ฝ่ายวิชาการ</div>
+      <div class="member-dept">ดูแลด้านการเรียนการสอน</div>
+      <div class="member-motto">"ความรู้คือพลัง"</div>
+      <div class="card-click-hint">แตะเพื่อดูข้อมูล ›</div>
+    </div>
+    <div class="member-card" id="card-arts" onclick="openProfile('arts')">
+      <div class="member-avatar"><span class="avatar-emoji">🎨</span></div>
+      <div class="member-role-badge">หัวหน้าฝ่าย</div>
+      <div class="member-name">ฝ่ายศิลปวัฒนธรรม</div>
+      <div class="member-dept">ดูแลกิจกรรมศิลปะและวัฒนธรรม</div>
+      <div class="member-motto">"อนุรักษ์ความเป็นไทย"</div>
+      <div class="card-click-hint">แตะเพื่อดูข้อมูล ›</div>
+    </div>
+    <div class="member-card" id="card-sports" onclick="openProfile('sports')">
+      <div class="member-avatar"><span class="avatar-emoji">⚽</span></div>
+      <div class="member-role-badge">หัวหน้าฝ่าย</div>
+      <div class="member-name">ฝ่ายกีฬาและสุขภาพ</div>
+      <div class="member-dept">ดูแลกิจกรรมกีฬา</div>
+      <div class="member-motto">"สุขภาพดี ชีวีมีสุข"</div>
+      <div class="card-click-hint">แตะเพื่อดูข้อมูล ›</div>
+    </div>
+    <div class="member-card" id="card-env" onclick="openProfile('env')">
+      <div class="member-avatar"><span class="avatar-emoji">🌍</span></div>
+      <div class="member-role-badge">หัวหน้าฝ่าย</div>
+      <div class="member-name">ฝ่ายสิ่งแวดล้อม</div>
+      <div class="member-dept">ดูแลความสะอาดและสิ่งแวดล้อม</div>
+      <div class="member-motto">"โรงเรียนสะอาด น่าอยู่"</div>
+      <div class="card-click-hint">แตะเพื่อดูข้อมูล ›</div>
+    </div>
+    <div class="member-card" id="card-it" onclick="openProfile('it')">
+      <div class="member-avatar"><span class="avatar-emoji">💡</span></div>
+      <div class="member-role-badge">หัวหน้าฝ่าย</div>
+      <div class="member-name">ฝ่ายสารสนเทศ</div>
+      <div class="member-dept">ดูแลสื่อและการสื่อสาร</div>
+      <div class="member-motto">"เชื่อมโยงทุกคนเข้าด้วยกัน"</div>
+      <div class="card-click-hint">แตะเพื่อดูข้อมูล ›</div>
+    </div>
+    <div class="member-card" id="card-community" onclick="openProfile('community')">
+      <div class="member-avatar"><span class="avatar-emoji">🤝</span></div>
+      <div class="member-role-badge">หัวหน้าฝ่าย</div>
+      <div class="member-name">ฝ่ายสัมพันธ์ชุมชน</div>
+      <div class="member-dept">ดูแลความสัมพันธ์กับชุมชน</div>
+      <div class="member-motto">"ร่วมมือ ร่วมใจ"</div>
+      <div class="card-click-hint">แตะเพื่อดูข้อมูล ›</div>
+    </div>
+    <div class="member-card" id="card-finance" onclick="openProfile('finance')">
+      <div class="member-avatar"><span class="avatar-emoji">💰</span></div>
+      <div class="member-role-badge">หัวหน้าฝ่าย</div>
+      <div class="member-name">ฝ่ายการเงิน</div>
+      <div class="member-dept">ดูแลงบประมาณและการเงิน</div>
+      <div class="member-motto">"โปร่งใส ตรวจสอบได้"</div>
+      <div class="card-click-hint">แตะเพื่อดูข้อมูล ›</div>
+    </div>
+  </div>
+  <div class="section-label">
+    <div class="section-label-line"></div>
+    <div class="section-label-text">📘 ผู้สมัคร ชั้น มอต้น</div>
+    <div class="section-label-line right"></div>
+  </div>
+  <div class="members-grid" style="padding-bottom:4rem">
+    <div class="member-card" id="card-junior1" onclick="openProfile('junior1')">
+      <div class="member-avatar"><span class="avatar-emoji">🌱</span></div>
+      <div class="member-role-badge">ตัวแทนมอต้น</div>
+      <div class="member-name">ตัวแทนนักเรียน ม.1</div>
+      <div class="member-dept">ระดับมัธยมศึกษาปีที่ 1</div>
+      <div class="member-motto">"เริ่มต้นด้วยใจที่มุ่งมั่น"</div>
+      <div class="card-click-hint">แตะเพื่อดูข้อมูล ›</div>
+    </div>
+    <div class="member-card" id="card-junior2" onclick="openProfile('junior2')">
+      <div class="member-avatar"><span class="avatar-emoji">🌿</span></div>
+      <div class="member-role-badge">ตัวแทนมอต้น</div>
+      <div class="member-name">ตัวแทนนักเรียน ม.2</div>
+      <div class="member-dept">ระดับมัธยมศึกษาปีที่ 2</div>
+      <div class="member-motto">"ร่วมพัฒนา สร้างสรรค์โรงเรียน"</div>
+      <div class="card-click-hint">แตะเพื่อดูข้อมูล ›</div>
+    </div>
+    <div class="member-card" id="card-junior3" onclick="openProfile('junior3')">
+      <div class="member-avatar"><span class="avatar-emoji">🌳</span></div>
+      <div class="member-role-badge">ตัวแทนมอต้น</div>
+      <div class="member-name">ตัวแทนนักเรียน ม.3</div>
+      <div class="member-dept">ระดับมัธยมศึกษาปีที่ 3</div>
+      <div class="member-motto">"เสียงของเราสำคัญ"</div>
+      <div class="card-click-hint">แตะเพื่อดูข้อมูล ›</div>
+    </div>
+    <div class="member-card" id="card-junior4" onclick="openProfile('junior4')">
+      <div class="member-avatar"><span class="avatar-emoji">⭐</span></div>
+      <div class="member-role-badge">ตัวแทนมอต้น</div>
+      <div class="member-name">ตัวแทนฝ่ายกิจกรรม</div>
+      <div class="member-dept">ฝ่ายกิจกรรมมอต้น</div>
+      <div class="member-motto">"สนุกและได้เรียนรู้"</div>
+      <div class="card-click-hint">แตะเพื่อดูข้อมูล ›</div>
+    </div>
+    <div class="member-card" id="card-junior5" onclick="openProfile('junior5')">
+      <div class="member-avatar"><span class="avatar-emoji">💫</span></div>
+      <div class="member-role-badge">ตัวแทนมอต้น</div>
+      <div class="member-name">ตัวแทนฝ่ายวิชาการ</div>
+      <div class="member-dept">ฝ่ายวิชาการมอต้น</div>
+      <div class="member-motto">"ความรู้คือก้าวแรกของความสำเร็จ"</div>
+      <div class="card-click-hint">แตะเพื่อดูข้อมูล ›</div>
+    </div>
+  </div>
+</div>
+<div id="comments" class="page">
+  <nav class="top-nav">
+    <button class="nav-back" onclick="goTo('lobby')">← กลับ</button>
+    <div class="nav-breadcrumb"><span>หน้าหลัก</span> › <strong>ความคิดเห็น</strong></div>
+    <div class="nav-right-actions">
+      <button class="nav-action-btn" onclick="goTo('members')">👥 ทีมเรา</button>
+    </div>
+  </nav>
+  <div class="comments-hero">
+    <h1>บอกเราได้เลย! 📣</h1>
+    <div class="gold-line"></div>
+    <p>อยากให้เราทำอะไรถ้าได้รับเลือก? มีนโยบายอะไรอยากเพิ่ม? เราฟังทุกเสียงของน้องๆ</p>
+  </div>
+  <div class="latest-news-section">
+    <div class="section-header">
+      <div class="section-title-main">🔔 ข่าวล่าสุด</div>
+    </div>
+    <div class="news-grid">
+      <div class="news-card">
+        <div class="news-card-tag"><span class="category-badge cat-announce">#ประกาศ</span></div>
+        <div class="news-card-title">เปิดรับความคิดเห็นจากนักเรียนทุกชั้น</div>
+        <div class="news-card-desc">ทีมเราต้องการฟังเสียงจากน้องๆ ทุกระดับชั้น ตั้งแต่ ป.1 ถึง ม.6</div>
+        <div class="news-card-date">📅 พ.ค. 2569</div>
+      </div>
+      <div class="news-card">
+        <div class="news-card-tag"><span class="category-badge cat-activity">#กิจกรรม</span></div>
+        <div class="news-card-title">นโยบาย 5 ด้านพร้อมแล้ว</div>
+        <div class="news-card-desc">ทีม SARASAS PROMAX เผยนโยบายครบทั้ง 5 ด้าน ทั้งวิชาการ กิจกรรม สุขภาวะ ชุมชน และสิ่งแวดล้อม</div>
+        <div class="news-card-date">📅 เม.ย. 2569</div>
+      </div>
+      <div class="news-card">
+        <div class="news-card-tag"><span class="category-badge cat-news">#ข่าว</span></div>
+        <div class="news-card-title">ทีมผู้สมัครพร้อมแล้ว!</div>
+        <div class="news-card-desc">ผู้สมัครจาก ม.ปลาย และ ม.ต้น พร้อมหน้าแล้วรวม 15 คน ทีมครบ พร้อมลุย!</div>
+        <div class="news-card-date">📅 เม.ย. 2569</div>
+      </div>
+    </div>
+  </div>
+  <div class="comment-container">
+    <div id="loginArea" style="margin-bottom:1.5rem">
+      <div class="login-prompt">
+        <p>กรุณาเข้าสู่ระบบเพื่อแสดงความคิดเห็น</p>
+        <button class="btn-google-login" id="defaultLoginBtn" onclick="if(window.loginWithGoogle){window.loginWithGoogle()}else{document.getElementById('defaultLoginBtn').textContent='⏳ กำลังโหลด...';setTimeout(()=>{if(window.loginWithGoogle)window.loginWithGoogle();else alert('กรุณารอสักครู่แล้วลองใหม่')},2000)}">
+          <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="20" />
+          เข้าสู่ระบบด้วย Google
+        </button>
+      </div>
+    </div>
+    <div class="comment-form-box" id="formBox" style="display:none">
+      <div class="form-title">✍️ แสดงความคิดเห็น</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">ชื่อ (จาก Google Account)</label>
+          <input class="form-input" id="inputName" type="text" readonly style="opacity:0.6;cursor:not-allowed;" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">ระดับชั้น <span style="color:#ff7675;font-size:0.85rem">*</span></label>
+          <select class="form-select" id="inputLevel">
+            <option value="">-- เลือกระดับชั้น --</option>
+            <option>ป.1</option><option>ป.2</option><option>ป.3</option>
+            <option>ป.4</option><option>ป.5</option><option>ป.6</option>
+            <option>ม.1</option><option>ม.2</option><option>ม.3</option>
+            <option>ม.4</option><option>ม.5</option><option>ม.6</option>
+          </select>
+        </div>
+      </div>
+      <label class="anon-row" for="anonCheck">
+        <input type="checkbox" id="anonCheck" onchange="toggleAnon(this.checked)" />
+        <span class="anon-label">🕵️ โหมดไม่ระบุตัวตน</span>
+        <span class="anon-desc">ซ่อนชื่อจากทุกคน (ยกเว้นทีมเรา)</span>
+      </label>
+      <label class="anon-row" for="privateCheck" style="border-color:rgba(255,215,0,0.2);background:rgba(255,215,0,0.04)">
+        <input type="checkbox" id="privateCheck" style="accent-color:#f1c40f" />
+        <span class="anon-label" style="color:rgba(255,215,0,0.9)">🔒 ส่งตรงถึงทีมของเรา</span>
+        <span class="anon-desc">ทีมหาเสียงเห็นเท่านั้น คนอื่นมองไม่เห็น</span>
+      </label>
+      <div class="form-group" style="margin-bottom:1rem">
+        <label class="form-label">ประเภท</label>
+        <div class="type-tags" id="typeTags">
+          <button class="type-tag active" onclick="selectType(this, 'ความคิดเห็น')">💬 ความคิดเห็น</button>
+          <button class="type-tag" onclick="selectType(this, 'ข้อเสนอแนะ')">💡 ข้อเสนอแนะ</button>
+          <button class="type-tag" onclick="selectType(this, 'ร้องเรียน')">🚨 ร้องเรียน</button>
+          <button class="type-tag" onclick="selectType(this, 'ขอสิ่งอำนวยความสะดวก')">🙏 ขอสิ่งอำนวยความสะดวก</button>
+        </div>
+      </div>
+      <div class="form-group" style="margin-bottom:1rem">
+        <label class="form-label">รายละเอียด</label>
+        <textarea class="form-textarea" id="inputText" placeholder="พิมพ์สิ่งที่อยากบอก อยากได้ อยากให้ปรับปรุง..."></textarea>
+      </div>
+      <button class="btn-submit" onclick="submitComment()">📨 ส่งความคิดเห็นถึงทีมเรา</button>
+    </div>
+    <div class="filter-tabs" id="filterTabs">
+      <button class="filter-tab active" onclick="setFilter('ทั้งหมด', this)">📋 ทั้งหมด</button>
+      <button class="filter-tab" onclick="setFilter('ความคิดเห็น', this)">💬 ความคิดเห็น</button>
+      <button class="filter-tab" onclick="setFilter('ข้อเสนอแนะ', this)">💡 ข้อเสนอแนะ</button>
+      <button class="filter-tab" onclick="setFilter('ร้องเรียน', this)">🚨 ร้องเรียน</button>
+      <button class="filter-tab" onclick="setFilter('ขอสิ่งอำนวยความสะดวก', this)">🙏 ขอสิ่งอำนวยความสะดวก</button>
+      <button class="filter-tab admin-only-tab" id="adminOnlyTab" style="display:none;background:rgba(192,57,43,0.15);border-color:rgba(192,57,43,0.35);color:#ff8080" onclick="setFilter('__banned__', this)">🛡️ Admin Only</button>
+      <button class="filter-tab" id="councilOnlyTab" style="display:none;background:rgba(255,215,0,0.08);border-color:rgba(255,215,0,0.25);color:rgba(255,215,0,0.85)" onclick="setFilter('__council__', this)">🔒 เฉพาะทีมเรา</button>
+    </div>
+    <div style="margin-bottom:1.5rem">
+      <div style="font-family:Kanit,sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:2px;color:rgba(255,255,255,0.38);text-transform:uppercase;margin-bottom:0.6rem">🎓 แสดงเฉพาะระดับชั้น</div>
+      <div class="filter-tabs" id="gradeFilterTabs" style="margin-bottom:0">
+        <button class="filter-tab grade-filter-tab active" style="background:rgba(255,255,255,0.08);border-color:rgba(255,255,255,0.2);color:var(--white);font-weight:700" onclick="setGradeFilter('', this)">🌐 ทุกชั้น</button>
+        <button class="filter-tab grade-filter-tab" style="border-color:rgba(52,152,219,0.35);color:#74b9ff" onclick="setGradeFilter('ป.1', this)">ป.1</button>
+        <button class="filter-tab grade-filter-tab" style="border-color:rgba(52,152,219,0.35);color:#74b9ff" onclick="setGradeFilter('ป.2', this)">ป.2</button>
+        <button class="filter-tab grade-filter-tab" style="border-color:rgba(52,152,219,0.35);color:#74b9ff" onclick="setGradeFilter('ป.3', this)">ป.3</button>
+        <button class="filter-tab grade-filter-tab" style="border-color:rgba(52,152,219,0.35);color:#74b9ff" onclick="setGradeFilter('ป.4', this)">ป.4</button>
+        <button class="filter-tab grade-filter-tab" style="border-color:rgba(52,152,219,0.35);color:#74b9ff" onclick="setGradeFilter('ป.5', this)">ป.5</button>
+        <button class="filter-tab grade-filter-tab" style="border-color:rgba(52,152,219,0.35);color:#74b9ff" onclick="setGradeFilter('ป.6', this)">ป.6</button>
+        <button class="filter-tab grade-filter-tab" style="border-color:rgba(155,89,182,0.35);color:#a29bfe" onclick="setGradeFilter('ม.1', this)">ม.1</button>
+        <button class="filter-tab grade-filter-tab" style="border-color:rgba(155,89,182,0.35);color:#a29bfe" onclick="setGradeFilter('ม.2', this)">ม.2</button>
+        <button class="filter-tab grade-filter-tab" style="border-color:rgba(155,89,182,0.35);color:#a29bfe" onclick="setGradeFilter('ม.3', this)">ม.3</button>
+        <button class="filter-tab grade-filter-tab" style="border-color:rgba(155,89,182,0.35);color:#a29bfe" onclick="setGradeFilter('ม.4', this)">ม.4</button>
+        <button class="filter-tab grade-filter-tab" style="border-color:rgba(155,89,182,0.35);color:#a29bfe" onclick="setGradeFilter('ม.5', this)">ม.5</button>
+        <button class="filter-tab grade-filter-tab" style="border-color:rgba(155,89,182,0.35);color:#a29bfe" onclick="setGradeFilter('ม.6', this)">ม.6</button>
+      </div>
+    </div>
+    <div class="comments-list-title">
+      💌 เสียงจากน้องๆ ถึงทีมเรา
+      <span class="comment-count-badge" id="countBadge">0</span>
+    </div>
+    <div id="commentsList">
+      <div class="empty-state">
+        <div class="icon">🌟</div>
+        <p>ยังไม่มีความคิดเห็น<br/>เป็นคนแรกที่บอกเราได้เลย!</p>
+      </div>
+    </div>
+    <div class="comments-footer">
+      <button class="footer-link" onclick="openPrivacyModal('privacy')">🔐 นโยบายความเป็นส่วนตัว</button>
+      <span style="color:rgba(255,255,255,0.15);font-size:0.78rem">·</span>
+      <button class="footer-link" onclick="openPrivacyModal('terms')">📋 ข้อกำหนดการใช้งาน</button>
+      <span style="color:rgba(255,255,255,0.15);font-size:0.78rem">·</span>
+      <button class="footer-link" onclick="openPrivacyModal('modes')">ℹ️ เกี่ยวกับโหมดต่างๆ</button>
+    </div>
+  </div>
+</div>
+<div class="modal-overlay" id="profileModal" onclick="closeModalOutside(event)">
+  <div class="modal-box" id="modalBox">
+    <button class="modal-close" onclick="closeProfile()">✕</button>
+    <div class="modal-body">
+      <div class="modal-photo-panel">
+        <div class="modal-photo" id="modalPhoto">
+          <img id="modalPhotoImg" src="" alt="" style="display:none" onerror="this.style.display='none'; document.getElementById('modalPhotoEmoji').style.display='flex'" />
+          <span id="modalPhotoEmoji" style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;font-size:3.5rem">👤</span>
+        </div>
+      </div>
+      <div class="modal-info">
+        <div class="modal-role-badge" id="modalRole">-</div>
+        <div class="modal-fullname" id="modalFullname">-</div>
+        <div class="modal-nickname" id="modalNickname">-</div>
+        <div class="modal-info-grid">
+          <div class="modal-info-row">
+            <span class="info-icon">🎂</span>
+            <span class="info-label">วันเกิด</span>
+            <span class="info-value" id="modalBirthday">-</span>
+          </div>
+          <div class="modal-info-row">
+            <span class="info-icon">📐</span>
+            <span class="info-label">แผนก</span>
+            <span class="info-value" id="modalDept">-</span>
+          </div>
+        </div>
+        <div class="modal-socials" id="modalSocials"></div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast">✅ ส่งความคิดเห็นแล้ว ขอบคุณมากนะ!</div>
+<button class="floating-support" onclick="openSupportModal()" id="floatingSupportBtn">
+  🆘 <span class="support-btn-text">มีปัญหาใช้เว็บ? คลิกที่นี้</span>
+</button>
+<div class="support-overlay" id="supportModal" onclick="closeSupportOutside(event)">
+  <div class="support-card">
+    <button class="support-close" onclick="closeSupportModal()">✕</button>
+    <div class="support-body">
+      <div class="support-seal">🏛️</div>
+      <div class="support-title">ติดต่อ เรา</div>
+      <div class="support-subtitle">มีปัญหาใช้เว็บไม่เป็น / ใช้ไม่ได้? พี่พร้อมช่วยเสมอ 🙋</div>
+      <div class="support-divider"></div>
+      <div class="support-channel-label">ช่องทางการติดต่อ</div>
+      <div class="support-channels" id="supportChannels">
+      </div>
+      <div class="support-note">
+        โปรดติดต่อ เพจทีมสภาของเรา<br/>
+        เราจะตอบกลับโดยเร็วที่สุด 💙
+      </div>
+    </div>
+  </div>
+</div>
+<div class="ban-overlay" id="banModal" onclick="closeBanOutside(event)">
+  <div class="ban-box" id="banBox">
+    <button class="ban-close" onclick="closeBanModal()">✕</button>
+    <div class="ban-title" id="banModalTitle">🚫 ระงับการคอมเม้น</div>
+    <div class="ban-target-info" id="banTargetInfo">กำลังโหลด...</div>
+    <div class="ban-duration-label">⏱ ระยะเวลาระงับ</div>
+    <div class="ban-duration-grid">
+      <button class="ban-duration-btn active" onclick="selectBanDuration(this,1)">1 วัน</button>
+      <button class="ban-duration-btn" onclick="selectBanDuration(this,3)">3 วัน</button>
+      <button class="ban-duration-btn" onclick="selectBanDuration(this,7)">7 วัน</button>
+      <button class="ban-duration-btn" onclick="selectBanDuration(this,30)">30 วัน</button>
+      <button class="ban-duration-btn" onclick="selectBanDuration(this,-1)">ถาวร</button>
+    </div>
+    <div class="ban-reason-label">📝 สาเหตุ <span style="color:rgba(255,255,255,0.35);font-weight:400">(ไม่ระบุได้)</span></div>
+    <textarea class="ban-reason-input" id="banReasonInput" placeholder="ระบุสาเหตุการระงับ (ถ้ามี)..."></textarea>
+    <button class="ban-confirm-btn" id="banConfirmBtn" onclick="confirmBan()">🚫 ยืนยันระงับการคอมเม้น</button>
+  </div>
+</div>
+<div class="ban-overlay" id="extendModal" onclick="closeExtendOutside(event)">
+  <div class="ban-box extend-box" id="extendBox">
+    <button class="ban-close" onclick="closeExtendModal()">✕</button>
+    <div class="ban-title extend-title">⏰ เพิ่มเวลาระงับ</div>
+    <div class="ban-target-info" id="extendTargetInfo">กำลังโหลด...</div>
+    <div class="ban-duration-label">⏱ เพิ่มระยะเวลา</div>
+    <div class="ban-duration-grid">
+      <button class="ban-duration-btn active" onclick="selectExtendDuration(this,1)">+1 วัน</button>
+      <button class="ban-duration-btn" onclick="selectExtendDuration(this,3)">+3 วัน</button>
+      <button class="ban-duration-btn" onclick="selectExtendDuration(this,7)">+7 วัน</button>
+      <button class="ban-duration-btn" onclick="selectExtendDuration(this,30)">+30 วัน</button>
+      <button class="ban-duration-btn" onclick="selectExtendDuration(this,-1)">ถาวร</button>
+    </div>
+    <button class="ban-confirm-btn extend-confirm-btn" onclick="confirmExtend()">⏰ ยืนยันเพิ่มเวลา</button>
+  </div>
+</div>
+<div class="ban-overlay" id="reduceModal" onclick="closeReduceOutside(event)">
+  <div class="ban-box reduce-box" id="reduceBox">
+    <button class="ban-close" onclick="closeReduceModal()">✕</button>
+    <div class="ban-title reduce-title">⏬ ลดเวลาระงับ</div>
+    <div class="ban-target-info" id="reduceTargetInfo">กำลังโหลด...</div>
+    <div class="ban-duration-label">⏱ ลดระยะเวลา</div>
+    <div class="ban-duration-grid">
+      <button class="ban-duration-btn active" onclick="selectReduceDuration(this,1)">-1 วัน</button>
+      <button class="ban-duration-btn" onclick="selectReduceDuration(this,3)">-3 วัน</button>
+      <button class="ban-duration-btn" onclick="selectReduceDuration(this,7)">-7 วัน</button>
+      <button class="ban-duration-btn" onclick="selectReduceDuration(this,30)">-30 วัน</button>
+    </div>
+    <button class="ban-confirm-btn reduce-confirm-btn" onclick="confirmReduce()">⏬ ยืนยันลดเวลา</button>
+  </div>
+</div>
+<div id="banWall">
+  <div class="ban-wall-box" id="banWallBox">
+    <div class="ban-wall-icon">🚫</div>
+    <div class="ban-wall-title" id="banWallTitle">บัญชีถูกระงับการใช้งาน</div>
+    <div class="ban-wall-subtitle">คุณไม่สามารถใช้งานเว็บไซต์นี้ได้ในขณะนี้</div>
+    <div class="ban-wall-card">
+      <div class="ban-wall-row">
+        <span class="ban-wall-row-label">📅 เวลาที่โดนแบน</span>
+        <span class="ban-wall-row-value" id="banWallBannedAt">-</span>
+      </div>
+      <div class="ban-wall-row">
+        <span class="ban-wall-row-label">📝 สาเหตุ</span>
+        <span class="ban-wall-row-value" id="banWallReason">-</span>
+      </div>
+      <div class="ban-wall-row">
+        <span class="ban-wall-row-label">⏰ หมดอายุ</span>
+        <span class="ban-wall-row-value" id="banWallExpiry">-</span>
+      </div>
+    </div>
+    <div class="ban-wall-countdown-label" id="banWallCountdownLabel">⏳ เวลาที่เหลือก่อนปลดแบน</div>
+    <div class="ban-wall-countdown" id="banWallCountdown">00:00:00:00</div>
+    <div class="ban-wall-progress" id="banWallProgressWrap">
+      <div class="ban-wall-progress-bar" id="banWallProgress" style="width:100%"></div>
+    </div>
+    <div class="ban-wall-note" id="banWallNote">
+      หากคิดว่าเกิดข้อผิดพลาด กรุณาติดต่อทีมหาเสียง<br/>Popup นี้จะปิดอัตโนมัติเมื่อหมดเวลาแบน
+    </div>
+  </div>
+</div>
+<div class="reveal-overlay" id="revealModal" onclick="closeRevealOutside(event)">
+  <div class="reveal-box">
+    <button class="reveal-close" onclick="closeReveal()">✕</button>
+    <div style="text-align:center">
+      <div class="reveal-badge">🛡️ Admin Only — ข้อมูลลับ</div>
+      <div class="reveal-photo" id="revealPhoto"><span id="revealPhotoEmoji">👤</span></div>
+      <div class="reveal-name" id="revealName">-</div>
+      <div class="reveal-email" id="revealEmail">-</div>
+    </div>
+    <div class="reveal-comment-preview" id="revealCommentPreview"></div>
+  </div>
+</div>
+<div class="privacy-overlay" id="privacyModal" onclick="closePrivacyOutside(event)">
+  <div class="privacy-box">
+    <div class="privacy-header">
+      <h2 id="privacyModalTitle">🔐 นโยบายความเป็นส่วนตัว</h2>
+      <p id="privacyModalSub">ทีมหาเสียง SARASAS PROMAX · ปีการศึกษา 2569</p>
+    </div>
+    <button class="privacy-close" onclick="closePrivacyModal()">✕</button>
+    <div class="privacy-body" id="privacyBody">
+    </div>
+  </div>
+</div>
+<script>
+  const PRIVACY_CONTENT = {
+    privacy: {
+      title: '🔐 นโยบายความเป็นส่วนตัว',
+      sub: 'ทีมหาเสียง SARASAS PROMAX · ปีการศึกษา 2569',
+      html: `
+        <div class="privacy-section">
+          <div class="privacy-section-title">📌 ข้อมูลที่เก็บรวบรวม</div>
+          <div class="privacy-text">เมื่อคุณเข้าสู่ระบบด้วย Google Account ระบบจะจัดเก็บข้อมูลต่อไปนี้เพื่อใช้งานในระบบ:</div>
+          <div class="privacy-rule"><span class="privacy-rule-icon">👤</span><span>ชื่อแสดงผล (Display Name) จาก Google Account</span></div>
+          <div class="privacy-rule"><span class="privacy-rule-icon">📧</span><span>อีเมล Google ของคุณ (ใช้สำหรับยืนยันตัวตน ไม่เปิดเผยต่อสาธารณะ)</span></div>
+          <div class="privacy-rule"><span class="privacy-rule-icon">🖼️</span><span>รูปโปรไฟล์ Google (แสดงในความคิดเห็น เว้นแต่ใช้โหมดไม่ระบุตัวตน)</span></div>
+          <div class="privacy-rule"><span class="privacy-rule-icon">💬</span><span>ข้อความความคิดเห็นที่คุณส่ง พร้อมวันเวลาและประเภท</span></div>
+        </div>
+        <div class="privacy-section">
+          <div class="privacy-section-title">🔒 การปกป้องข้อมูล</div>
+          <div class="privacy-rule"><span class="privacy-rule-icon">✅</span><span>ข้อมูลส่วนตัวจะไม่ถูกเปิดเผยให้บุคคลภายนอกโดยไม่ได้รับความยินยอม</span></div>
+          <div class="privacy-rule"><span class="privacy-rule-icon">✅</span><span>อีเมลและข้อมูลจริงของคุณจะถูกเก็บในระบบ ทีมหาเสียงสามารถเข้าถึงได้เพื่อวัตถุประสงค์ในการดูแลระบบและป้องกันการกระทำผิดกฎหมายเท่านั้น</span></div>
+          <div class="privacy-rule"><span class="privacy-rule-icon">✅</span><span>ระบบใช้ Firebase (Google) เป็นฐานข้อมูล มีมาตรฐานความปลอดภัยตาม Google Cloud</span></div>
+        </div>
+        <div class="privacy-section">
+          <div class="privacy-section-title">🗂️ การเก็บข้อมูลและระยะเวลา</div>
+          <div class="privacy-text">ข้อมูลของคุณจะถูกเก็บไว้ตราบเท่าที่จำเป็นสำหรับการทำงานของระบบ หากต้องการลบข้อมูลของคุณ กรุณาติดต่อทีมหาเสียงโดยตรง</div>
+        </div>
+        <div class="privacy-updated">นโยบายนี้อาจมีการปรับปรุงได้ตลอดเวลา การใช้งานต่อเนื่องถือว่ายอมรับนโยบายฉบับปัจจุบัน</div>
+      `
+    },
+    terms: {
+      title: '📋 ข้อกำหนดการใช้งาน',
+      sub: 'ทีมหาเสียง SARASAS PROMAX · ปีการศึกษา 2569',
+      html: `
+        <div class="privacy-section">
+          <div class="privacy-section-title">✅ สิ่งที่ทำได้</div>
+          <div class="privacy-rule"><span class="privacy-rule-icon">💬</span><span>แสดงความคิดเห็น ข้อเสนอแนะ หรือร้องเรียนในนามของตัวเองหรือนิรนาม</span></div>
+          <div class="privacy-rule"><span class="privacy-rule-icon">🔒</span><span>ส่งเรื่องเป็นความลับ ส่งตรงถึงทีมหาเสียงโดยใช้โหมดลับ</span></div>
+          <div class="privacy-rule"><span class="privacy-rule-icon">👍</span><span>กด "เห็นด้วย" ความคิดเห็นที่คุณเห็นด้วย</span></div>
+        </div>
+        <div class="privacy-section">
+          <div class="privacy-section-title">🚫 สิ่งที่ห้ามทำ</div>
+          <div class="privacy-rule"><span class="privacy-rule-icon">⛔</span><span>ห้ามโพสข้อความที่มีเนื้อหาหมิ่นประมาท ดูหมิ่น หรือใส่ร้ายบุคคลอื่น</span></div>
+          <div class="privacy-rule"><span class="privacy-rule-icon">⛔</span><span>ห้ามโพสข้อความที่ขัดต่อกฎหมายไทย ได้แก่ การคุกคาม ข่มขู่ หรือเนื้อหาลามกอนาจาร</span></div>
+          <div class="privacy-rule"><span class="privacy-rule-icon">⛔</span><span>ห้ามใช้โหมดนิรนามเพื่อหลบเลี่ยงความรับผิดชอบในการกระทำที่ผิดกฎหมาย เนื่องจากทีมสามารถตรวจสอบตัวตนจริงได้</span></div>
+          <div class="privacy-rule"><span class="privacy-rule-icon">⛔</span><span>ห้ามโพสข้อมูลส่วนตัวของผู้อื่นโดยไม่ได้รับอนุญาต</span></div>
+          <div class="privacy-rule"><span class="privacy-rule-icon">⛔</span><span>ห้ามสร้างบัญชีหลายบัญชีเพื่อหลีกเลี่ยงการระงับการใช้งาน</span></div>
+        </div>
+        <div class="privacy-section">
+          <div class="privacy-section-title">⚖️ ผลของการละเมิดข้อกำหนด</div>
+          <div class="privacy-rule"><span class="privacy-rule-icon">🔴</span><span>ทีมหาเสียงมีสิทธิ์ระงับการใช้งานชั่วคราวหรือถาวรหากพบการละเมิด</span></div>
+          <div class="privacy-rule"><span class="privacy-rule-icon">🔴</span><span>หากการกระทำมีความผิดทางกฎหมาย ข้อมูลตัวตนจริงอาจถูกส่งให้ผู้มีอำนาจที่เกี่ยวข้อง</span></div>
+          <div class="privacy-warn">⚠️ การใช้โหมดนิรนามไม่ได้หมายความว่าคุณไม่สามารถถูกระบุตัวตนได้ ทีมหาเสียงสามารถดูว่าโพสนั้นเป็นของใครได้เสมอ</div>
+        </div>
+        <div class="privacy-updated">ข้อกำหนดนี้บังคับใช้กับผู้ใช้งานทุกคน การใช้งานระบบถือว่ายอมรับข้อกำหนดทั้งหมด</div>
+      `
+    },
+    modes: {
+      title: 'ℹ️ เกี่ยวกับโหมดต่างๆ',
+      sub: 'คำอธิบายโหมดความเป็นส่วนตัว — ทีม SARASAS PROMAX',
+      html: `
+        <div class="privacy-section">
+          <div class="privacy-section-title">🕵️ โหมดไม่ระบุตัวตน <span class="privacy-badge-anon">Anon Mode</span></div>
+          <div class="privacy-text" style="margin-bottom:0.8rem">เมื่อเปิดโหมดนี้ ความคิดเห็นของคุณจะปรากฏโดยไม่แสดงชื่อหรือรูปโปรไฟล์จริง</div>
+          <div class="privacy-rule"><span class="privacy-rule-icon">✅</span><span>ทุกคนสามารถเห็นความคิดเห็นของคุณ แต่จะไม่รู้ว่าคุณเป็นใคร</span></div>
+          <div class="privacy-rule"><span class="privacy-rule-icon">✅</span><span>คุณจะใช้ชื่อนิรนามและอีโมจิสุ่มแทนตัวตนจริง</span></div>
+          <div class="privacy-rule"><span class="privacy-rule-icon">🛡️</span><span><strong>ทีมหาเสียง (Admin)</strong> สามารถดูตัวตนจริงของผู้โพสในโหมดนิรนามได้ เพื่อป้องกันการกระทำที่ผิดกฎหมายและการไม่ยอมรับของระบบ</span></div>
+          <div class="privacy-warn">⚠️ โหมดนิรนามไม่ใช่การปกปิดตัวตนจากทีมเรา เป็นเพียงการซ่อนจากนักเรียนคนอื่นเท่านั้น</div>
+        </div>
+        <div class="privacy-section">
+          <div class="privacy-section-title">🔒 โหมดลับเฉพาะทีม <span class="privacy-badge-private">Council Only</span></div>
+          <div class="privacy-text" style="margin-bottom:0.8rem">เมื่อเปิดโหมดนี้ ความคิดเห็นของคุณจะถูกส่งตรงถึงทีมหาเสียงเท่านั้น ไม่ปรากฏในฟีดสาธารณะ</div>
+          <div class="privacy-rule"><span class="privacy-rule-icon">✅</span><span>เฉพาะทีมหาเสียง (Admin) เท่านั้นที่เห็นความคิดเห็นนี้</span></div>
+          <div class="privacy-rule"><span class="privacy-rule-icon">✅</span><span><strong>คุณเอง</strong> (ผู้โพส) จะเห็นโพสของตัวเองในฟีดปกติด้วย เพื่อยืนยันว่าส่งสำเร็จ</span></div>
+          <div class="privacy-rule"><span class="privacy-rule-icon">✅</span><span>นักเรียนคนอื่นจะไม่เห็นความคิดเห็นนี้เลย เหมาะสำหรับเรื่องส่วนตัวหรือเรื่องละเอียดอ่อน</span></div>
+          <div class="privacy-rule"><span class="privacy-rule-icon">🔍</span><span>ทีมหาเสียงจะเห็นชื่อจริงและอีเมลของผู้โพส แม้จะใช้โหมดนิรนามร่วมด้วย</span></div>
+        </div>
+        <div class="privacy-section">
+          <div class="privacy-section-title">🌐 โหมดปกติ (ไม่ติ้กอะไรเลย)</div>
+          <div class="privacy-rule"><span class="privacy-rule-icon">👁️</span><span>ทุกคนเห็นความคิดเห็น รวมถึงชื่อและรูปโปรไฟล์ของคุณ</span></div>
+          <div class="privacy-rule"><span class="privacy-rule-icon">👍</span><span>ผู้อื่นสามารถกด "เห็นด้วย" ได้</span></div>
+        </div>
+        <div class="privacy-updated">หากมีข้อสงสัย ติดต่อทีมหาเสียงได้โดยตรง หรือส่งเรื่องผ่านโหมดลับเฉพาะทีม</div>
+      `
+    }
+  };
+  window.openPrivacyModal = function(type) {
+    const c = PRIVACY_CONTENT[type] || PRIVACY_CONTENT.privacy;
+    document.getElementById('privacyModalTitle').textContent = c.title;
+    document.getElementById('privacyModalSub').textContent = c.sub;
+    document.getElementById('privacyBody').innerHTML = c.html;
+    document.getElementById('privacyModal').classList.add('open');
+    lockPageScroll();
+  };
+  window.closePrivacyModal = function() {
+    document.getElementById('privacyModal').classList.remove('open');
+    unlockPageScroll();
+  };
+  window.closePrivacyOutside = function(e) {
+    if (e.target === document.getElementById('privacyModal')) window.closePrivacyModal();
+  };
+</script>
+<script>
+  const SEAL_IMAGE_URL = 'https://i.postimg.cc/02m2CkSh/swsk_promax.png';
+  function lockPageScroll() {}
+  function unlockPageScroll() {}
+  window.lockPageScroll = lockPageScroll;
+  window.unlockPageScroll = unlockPageScroll;
+  var _leaveTimer = null;
+  var _enterTimer = null;
+  function _clearTimers() {
+    if (_leaveTimer) { clearTimeout(_leaveTimer); _leaveTimer = null; }
+    if (_enterTimer) { clearTimeout(_enterTimer); _enterTimer = null; }
+  }
+  function _showPage(id) {
+    var target = document.getElementById(id);
+    if (!target) { id = 'lobby'; target = document.getElementById('lobby'); }
+    _clearTimers();
+    document.querySelectorAll('.page').forEach(function(p) {
+      p.classList.remove('active', 'lobby-reset');
+      p.style.cssText = '';
+    });
+    target.classList.add('active');
+    target.scrollTop = 0;
+    // lobby-reset: CSS fadeUp runs once on load; opacity stays 0 on return visits
+    if (id === 'lobby') { target.classList.add('lobby-reset'); }
+    void target.offsetHeight;
+    target.style.opacity = '0';
+    target.style.transition = 'opacity 0.22s ease';
+    void target.offsetHeight;
+    target.style.opacity = '1';
+    _enterTimer = setTimeout(function() {
+      target.style.opacity = '';
+      target.style.transition = '';
+      _enterTimer = null;
+    }, 250);
+    var btn = document.getElementById('floatingSupportBtn');
+    if (btn) {
+      if (id === 'lobby') btn.classList.remove('compact');
+      else btn.classList.add('compact');
+    }
+  }
+  window.goTo = function(id) {
+    var current = document.querySelector('.page.active');
+    var target = document.getElementById(id);
+    if (!target) return;
+    if (current && current.id === id && !current.style.opacity) return;
+    _clearTimers();
+    try { history.pushState({ page: id }, '', id === 'lobby' ? location.pathname : '#' + id); } catch(e) {}
+    if (!current || current === target) { _showPage(id); return; }
+    current.style.transition = 'opacity 0.18s ease';
+    current.style.opacity = '0';
+    _leaveTimer = setTimeout(function() {
+      _leaveTimer = null;
+      _showPage(id);
+    }, 180);
+  };
+  window.addEventListener('popstate', function(e) {
+    var id = (e.state && e.state.page) ? e.state.page : 'lobby';
+    _showPage(id);
+  });
+  try { history.replaceState({ page: 'lobby' }, '', location.pathname); } catch(e) {}
+  window.addEventListener('pageshow', function(e) {
+    if (e.persisted) {
+      _showPage('lobby');
+      try { history.replaceState({ page: 'lobby' }, '', location.pathname); } catch(e) {}
+    }
+  });
+  (function() {
+    if (SEAL_IMAGE_URL) {
+      const img = document.getElementById('sealImg');
+      const emoji = document.getElementById('sealEmoji');
+      img.src = SEAL_IMAGE_URL;
+      img.style.display = 'block';
+      emoji.style.display = 'none';
+    }
+  })();
+  const MEMBERS = {
+    president: {
+      role: 'ประธานนักเรียน',
+      fullname: 'สุภัทรตรา จิรโชติเมธากุล',
+      nickname: 'ชื่อเล่น: ดรีม',
+      birthday: '10/10/1000',
+      dept: 'วิทย์-คณิต',
+      facebook: 'supattra.jirachaotmethakul',
+      instagram: 'imyourdreax_',
+      photo: 'https://pub-3d4ce6089b0d434591154a2f1344b9fb.r2.dev/dream.webp',
+      emoji: '👑'
+    },
+    vp1: {
+      role: 'รองประธาน คนที่ 1',
+      fullname: 'รองประธานฝ่ายวิชาการ',
+      nickname: 'ชื่อเล่น: -',
+      birthday: '-',
+      dept: 'ฝ่ายวิชาการ',
+      facebook: '',
+      instagram: '',
+      photo: 'https://pub-3d4ce6089b0d434591154a2f1344b9fb.r2.dev/baramet.webp',
+      emoji: '⭐'
+    },
+    vp2: {
+      role: 'รองประธาน คนที่ 2',
+      fullname: 'ชาหิส์ดา เชาว์ดารี',
+      nickname: 'ชื่อเล่น: -',
+      birthday: '-',
+      dept: 'ฝ่ายกิจกรรม',
+      facebook: '',
+      instagram: '',
+      photo: 'https://pub-3d4ce6089b0d434591154a2f1344b9fb.r2.dev/bow.webp',
+      emoji: '🌟'
+    },
+    academic: {
+      role: 'หัวหน้าฝ่ายวิชาการ',
+      fullname: 'ชื่อจริง: -',
+      nickname: 'ชื่อเล่น: -',
+      birthday: '-',
+      dept: 'วิทย์-คณิต / ศิลป์-ภาษา',
+      facebook: '',
+      instagram: '',
+      photo: '',
+      emoji: '📚'
+    },
+    arts: {
+      role: 'หัวหน้าฝ่ายศิลปวัฒนธรรม',
+      fullname: 'ชื่อจริง: -',
+      nickname: 'ชื่อเล่น: -',
+      birthday: '-',
+      dept: 'วิทย์-คณิต / ศิลป์-ภาษา',
+      facebook: '',
+      instagram: '',
+      photo: '',
+      emoji: '🎨'
+    },
+    sports: {
+      role: 'หัวหน้าฝ่ายกีฬา',
+      fullname: 'ชื่อจริง: อนุพงษ์ มณีสอดแสง ',
+      nickname: 'ชื่อเล่น: เจล',
+      birthday: '-',
+      dept: 'ศิลป์-ภาษา',
+      facebook: 'anupong.maneesodsaeng',
+      instagram: 'anupongmaneesodsaeng',
+      photo: 'https://pub-3d4ce6089b0d434591154a2f1344b9fb.r2.dev/jel.webp',
+      emoji: '⚽'
+    },
+    env: {
+      role: 'หัวหน้าฝ่ายสิ่งแวดล้อม',
+      fullname: 'ชื่อจริง: -',
+      nickname: 'ชื่อเล่น: -',
+      birthday: '-',
+      dept: 'วิทย์-คณิต / ศิลป์-ภาษา',
+      facebook: '',
+      instagram: '',
+      photo: '',
+      emoji: '🌍'
+    },
+    it: {
+      role: 'หัวหน้าฝ่ายสารสนเทศ',
+      fullname: 'ชื่อจริง: ภูชนะ จันทร์เลื่อน',
+      nickname: 'ชื่อเล่น: หมีภู',
+      birthday: '09/10/2552',
+      dept: 'ศิลป์-ภาษา',
+      facebook: 'Poohchana.Janlren',
+      instagram: 'junr_xn',
+      photo: 'https://pub-3d4ce6089b0d434591154a2f1344b9fb.r2.dev/mheepooh.webp',
+      emoji: '💡'
+    },
+    community: {
+      role: 'หัวหน้าฝ่ายสัมพันธ์ชุมชน',
+      fullname: 'ชื่อจริง: -',
+      nickname: 'ชื่อเล่น: -',
+      birthday: '-',
+      dept: 'วิทย์-คณิต / ศิลป์-ภาษา',
+      facebook: '',
+      instagram: '',
+      photo: '',
+      emoji: '🤝'
+    },
+    finance: {
+      role: 'หัวหน้าฝ่ายการเงิน',
+      fullname: 'ชื่อจริง: -',
+      nickname: 'ชื่อเล่น: -',
+      birthday: '-',
+      dept: 'วิทย์-คณิต / ศิลป์-ภาษา',
+      facebook: '',
+      instagram: '',
+      photo: '',
+      emoji: '💰'
+    },
+    junior1: {
+      role: 'ตัวแทนมอต้น',
+      fullname: 'ชื่อจริง: -',
+      nickname: 'ชื่อเล่น: -',
+      birthday: '-',
+      dept: 'ระดับมัธยมศึกษาปีที่ 1',
+      facebook: '',
+      instagram: '',
+      photo: '',
+      emoji: '🌱'
+    },
+    junior2: {
+      role: 'ตัวแทนมอต้น',
+      fullname: 'ชื่อจริง: -',
+      nickname: 'ชื่อเล่น: -',
+      birthday: '-',
+      dept: 'ระดับมัธยมศึกษาปีที่ 2',
+      facebook: '',
+      instagram: '',
+      photo: '',
+      emoji: '🌿'
+    },
+    junior3: {
+      role: 'ตัวแทนมอต้น',
+      fullname: 'ชื่อจริง: -',
+      nickname: 'ชื่อเล่น: -',
+      birthday: '-',
+      dept: 'ระดับมัธยมศึกษาปีที่ 3',
+      facebook: '',
+      instagram: '',
+      photo: '',
+      emoji: '🌳'
+    },
+    junior4: {
+      role: 'ตัวแทนมอต้น',
+      fullname: 'ชื่อจริง: -',
+      nickname: 'ชื่อเล่น: -',
+      birthday: '-',
+      dept: 'ฝ่ายกิจกรรมมอต้น',
+      facebook: '',
+      instagram: '',
+      photo: '',
+      emoji: '⭐'
+    },
+    junior5: {
+      role: 'ตัวแทนมอต้น',
+      fullname: 'ชื่อจริง: -',
+      nickname: 'ชื่อเล่น: -',
+      birthday: '-',
+      dept: 'ฝ่ายวิชาการมอต้น',
+      facebook: '',
+      instagram: '',
+      photo: '',
+      emoji: '💫'
+    }
+  };
+  function setCardPhoto(cardId, url, emoji) {
+    const card = document.getElementById(cardId);
+    if (!card) return;
+    const avatar = card.querySelector('.member-avatar');
+    const emojiEl = avatar.querySelector('.avatar-emoji');
+    let img = avatar.querySelector('img');
+    if (!img) { img = document.createElement('img'); avatar.insertBefore(img, emojiEl); }
+    if (url) {
+      img.src = url; img.alt = '';
+      img.style.cssText = 'display:block;width:100%;height:100%;object-fit:cover;object-position:center top;border-radius:50%';
+      img.onerror = () => { img.style.display = 'none'; emojiEl.style.display = 'block'; };
+      emojiEl.style.display = 'none';
+    }
+  }
+  let currentMemberId = null;
+  function openProfile(id) {
+    const m = MEMBERS[id];
+    if (!m) return;
+    currentMemberId = id;
+    document.getElementById('modalRole').textContent = m.role;
+    document.getElementById('modalFullname').textContent = m.fullname;
+    document.getElementById('modalNickname').textContent = m.nickname;
+    document.getElementById('modalBirthday').textContent = m.birthday || '-';
+    document.getElementById('modalDept').textContent = m.dept || '-';
+    document.getElementById('modalPhotoEmoji').textContent = m.emoji || '👤';
+    const img = document.getElementById('modalPhotoImg');
+    if (m.photo) {
+      img.src = m.photo; img.style.display = 'block';
+      document.getElementById('modalPhotoEmoji').style.display = 'none';
+    } else {
+      img.style.display = 'none';
+      document.getElementById('modalPhotoEmoji').style.display = 'block';
+    }
+    const socialBox = document.getElementById('modalSocials');
+    const fbSVG = `<svg style="width:18px;height:18px;flex-shrink:0" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+    const igSVG = `<svg style="width:18px;height:18px;flex-shrink:0" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="2" width="20" height="20" rx="5" ry="5" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="2"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor"/></svg>`;
+    let html = '';
+    if (m.facebook) {
+      let fbDisplay = m.facebook;
+      try {
+        const url = new URL(m.facebook);
+        const parts = url.pathname.replace(/\//g, '').split('?')[0];
+        if (parts) fbDisplay = parts;
+      } catch(e) { fbDisplay = m.facebook; }
+      html += `<a class="social-link facebook" href="${m.facebook.startsWith('http') ? m.facebook : 'https://facebook.com/' + m.facebook}" target="_blank" rel="noopener">
+        ${fbSVG} ${fbDisplay}
+      </a>`;
+    } else {
+      html += `<div class="social-link no-link">${fbSVG} ยังไม่ได้ใส่ Facebook</div>`;
+    }
+    if (m.instagram) {
+      html += `<a class="social-link instagram" href="https://instagram.com/${m.instagram.replace('@','')}" target="_blank" rel="noopener">
+        ${igSVG} @${m.instagram.replace('@','')}
+      </a>`;
+    } else {
+      html += `<div class="social-link no-link">${igSVG} ยังไม่ได้ใส่ Instagram</div>`;
+    }
+    socialBox.innerHTML = html;
+    document.getElementById('profileModal').classList.add('open');
+    lockPageScroll();
+  }
+  function closeProfile() {
+    document.getElementById('profileModal').classList.remove('open');
+    unlockPageScroll();
+    currentMemberId = null;
+  }
+  function closeModalOutside(e) {
+    if (e.target === document.getElementById('profileModal')) closeProfile();
+  }
+  function updateModalPhoto(url) {
+    const img = document.getElementById('modalPhotoImg');
+    const emoji = document.getElementById('modalPhotoEmoji');
+    if (url) {
+      img.src = url; img.style.display = 'block'; emoji.style.display = 'none';
+      img.onerror = () => { img.style.display = 'none'; emoji.style.display = 'block'; };
+      if (currentMemberId) {
+        setCardPhoto('card-' + currentMemberId, url, '');
+        MEMBERS[currentMemberId].photo = url;
+      }
+    } else {
+      img.style.display = 'none'; emoji.style.display = 'block';
+    }
+  }
+  function selectType(el, type) {
+    document.querySelectorAll('.type-tag').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    window._selectedType = type;
+  }
+  window._selectedType = 'ความคิดเห็น';
+  window.toggleAnon = function(checked) {
+    const nameInput = document.getElementById('inputName');
+    if (checked) {
+      nameInput.style.opacity = '0.35';
+      nameInput.placeholder = 'ชื่อจะถูกซ่อนอัตโนมัติ';
+    } else {
+      nameInput.style.opacity = '0.6';
+      nameInput.placeholder = '';
+    }
+  };
+  window.toggleCommentMenu = function(id, e) {
+    e.stopPropagation();
+    e.stopImmediatePropagation();
+    document.querySelectorAll('.comment-dropdown').forEach(d => {
+      if (d.id !== 'menu-' + id) d.classList.remove('open');
+    });
+    const menu = document.getElementById('menu-' + id);
+    if (menu) menu.classList.toggle('open');
+  };
+  document.addEventListener('mousedown', (e) => {
+    if (!e.target.closest('.comment-menu-wrap')) {
+      document.querySelectorAll('.comment-dropdown').forEach(d => d.classList.remove('open'));
+    }
+  });
+  window.revealIdentity = function(docId) {
+    document.querySelectorAll('.comment-dropdown').forEach(d => d.classList.remove('open'));
+    if (window._revealComment) window._revealComment(docId);
+  };
+  window.closeReveal = function() {
+    document.getElementById('revealModal').classList.remove('open');
+  };
+  window.closeRevealOutside = function(e) {
+    if (e.target === document.getElementById('revealModal')) window.closeReveal();
+  };
+  window._banTargetUid = null;
+  window._banTargetName = null;
+  window._banDurationDays = 1;
+  window._extendTargetUid = null;
+  window._extendDurationDays = 1;
+  window.openBanModal = function(uid, name) {
+    document.querySelectorAll('.comment-dropdown').forEach(d => d.classList.remove('open'));
+    window._banTargetUid = uid;
+    window._banTargetName = name;
+    window._banDurationDays = 1;
+    const comments = window._allComments || [];
+    const targetComment = comments.find(c => c.uid === uid);
+    window._banTargetEmail = targetComment ? (targetComment.realEmail || '') : '';
+    const emailDisplay = window._banTargetEmail ? `<br/><span style="font-size:0.78rem;color:rgba(255,200,100,0.8)">📧 ${window._banTargetEmail}</span>` : '';
+    document.getElementById('banTargetInfo').innerHTML = `<strong>👤 ${name}</strong>${emailDisplay}`;
+    document.getElementById('banReasonInput').value = '';
+    document.querySelectorAll('#banModal .ban-duration-btn').forEach((b,i) => b.classList.toggle('active', i===0));
+    document.getElementById('banModal').classList.add('open');
+  };
+  window.closeBanModal = function() { document.getElementById('banModal').classList.remove('open'); };
+  window.closeBanOutside = function(e) { if (e.target === document.getElementById('banModal')) window.closeBanModal(); };
+  window.selectBanDuration = function(el, days) {
+    window._banDurationDays = days;
+    document.querySelectorAll('#banModal .ban-duration-btn').forEach(b => b.classList.remove('active'));
+    el.classList.add('active');
+  };
+  window.openExtendModal = function(uid, name, currentExpiry) {
+    document.querySelectorAll('.comment-dropdown').forEach(d => d.classList.remove('open'));
+    window._extendTargetUid = uid;
+    window._extendDurationDays = 1;
+    const expiryText = currentExpiry === -1 ? 'ถาวร' : (currentExpiry ? new Date(currentExpiry).toLocaleDateString('th-TH') : 'ไม่ทราบ');
+    document.getElementById('extendTargetInfo').innerHTML = `<strong>👤 ${name}</strong><br/><span style="font-size:0.78rem;color:rgba(255,200,100,0.8)">หมดอายุปัจจุบัน: ${expiryText}</span>`;
+    document.querySelectorAll('#extendModal .ban-duration-btn').forEach((b,i) => b.classList.toggle('active', i===0));
+    document.getElementById('extendModal').classList.add('open');
+  };
+  window.closeExtendModal = function() { document.getElementById('extendModal').classList.remove('open'); };
+  window.closeExtendOutside = function(e) { if (e.target === document.getElementById('extendModal')) window.closeExtendModal(); };
+  window.selectExtendDuration = function(el, days) {
+    window._extendDurationDays = days;
+    document.querySelectorAll('#extendModal .ban-duration-btn').forEach(b => b.classList.remove('active'));
+    el.classList.add('active');
+  };
+  window._reduceTargetUid = null;
+  window._reduceDurationDays = 1;
+  window.openReduceModal = function(uid, name, currentExpiry) {
+    document.querySelectorAll('.comment-dropdown').forEach(d => d.classList.remove('open'));
+    window._reduceTargetUid = uid;
+    window._reduceDurationDays = 1;
+    const expiryText = currentExpiry === -1 ? 'ถาวร' : (currentExpiry ? new Date(currentExpiry).toLocaleDateString('th-TH') : 'ไม่ทราบ');
+    document.getElementById('reduceTargetInfo').innerHTML = `<strong>👤 ${name}</strong><br/><span style="font-size:0.78rem;color:rgba(100,255,180,0.85)">หมดอายุปัจจุบัน: ${expiryText}</span>`;
+    document.querySelectorAll('#reduceModal .ban-duration-btn').forEach((b,i) => b.classList.toggle('active', i===0));
+    document.getElementById('reduceModal').classList.add('open');
+  };
+  window.closeReduceModal = function() { document.getElementById('reduceModal').classList.remove('open'); };
+  window.closeReduceOutside = function(e) { if (e.target === document.getElementById('reduceModal')) window.closeReduceModal(); };
+  window.selectReduceDuration = function(el, days) {
+    window._reduceDurationDays = days;
+    document.querySelectorAll('#reduceModal .ban-duration-btn').forEach(b => b.classList.remove('active'));
+    el.classList.add('active');
+  };
+  const container = document.getElementById('starsContainer');
+  for (let i = 0; i < 60; i++) {
+    const s = document.createElement('div');
+    s.className = 'star';
+    s.style.left = Math.random() * 100 + '%';
+    s.style.top = Math.random() * 100 + '%';
+    s.style.animationDelay = Math.random() * 3 + 's';
+    s.style.animationDuration = (2 + Math.random() * 3) + 's';
+    container.appendChild(s);
+  }
+  Object.entries(MEMBERS).forEach(([id, m]) => {
+    if (m.photo) setCardPhoto('card-' + id, m.photo, m.emoji);
+  });
+  window._filterType = 'ทั้งหมด';
+  window._gradeFilter = '';
+  window.setFilter = function(type, el) {
+    window._filterType = type;
+    document.querySelectorAll('#filterTabs .filter-tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    if (window._allComments) window._renderComments(window._allComments);
+  };
+  window.setGradeFilter = function(grade, el) {
+    window._gradeFilter = grade;
+    document.querySelectorAll('.grade-filter-tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    if (window._allComments) window._renderComments(window._allComments);
+  };
+  function showToast(msg, color) {
+    const t = document.getElementById('toast');
+    if (msg) t.textContent = msg; else t.textContent = '✅ ส่งความคิดเห็นสำเร็จ!';
+    if (color) t.style.background = 'linear-gradient(135deg, ' + color + ', ' + color + 'cc)'; else t.style.background = '';
+    t.classList.add('show');
+    setTimeout(() => { t.classList.remove('show'); t.style.background = ''; }, 3000);
+  }
+  const SUPPORT_CONTACTS = {
+    instagram: 'junr_xn',
+    facebook:  'gghghij.igfggh',
+  };
+  function renderSupportChannels() {
+    const box = document.getElementById('supportChannels');
+    if (!box) return;
+    let html = '';
+    if (SUPPORT_CONTACTS.instagram && SUPPORT_CONTACTS.instagram !== 'admin_instagram_here') {
+      const ig = SUPPORT_CONTACTS.instagram.replace('@','');
+      html += `<a class="support-channel-link ig" href="https://instagram.com/${ig}" target="_blank" rel="noopener">
+        <span class="support-channel-icon ig-icon">📷</span>
+        <div>
+          <div style="font-size:0.72rem;color:rgba(255,180,200,0.6);font-family:Sarabun,sans-serif;font-weight:400">Instagram</div>
+          <div>@${ig}</div>
+        </div>
+      </a>`;
+    } else {
+      html += `<div class="support-channel-link no-social">
+        <span class="support-channel-icon" style="background:rgba(255,255,255,0.06)">📷</span>
+        ยังไม่ได้ใส่ Instagram Admin
+      </div>`;
+    }
+    if (SUPPORT_CONTACTS.facebook && SUPPORT_CONTACTS.facebook !== 'admin_facebook_here') {
+      const fb = SUPPORT_CONTACTS.facebook;
+      const fbUrl = fb.startsWith('http') ? fb : 'https://facebook.com/' + fb;
+      html += `<a class="support-channel-link fb" href="${fbUrl}" target="_blank" rel="noopener">
+        <span class="support-channel-icon fb-icon">f</span>
+        <div>
+          <div style="font-size:0.72rem;color:rgba(144,195,255,0.6);font-family:Sarabun,sans-serif;font-weight:400">Facebook</div>
+          <div>${fb}</div>
+        </div>
+      </a>`;
+    } else {
+      html += `<div class="support-channel-link no-social">
+        <span class="support-channel-icon" style="background:rgba(255,255,255,0.06)">f</span>
+        ยังไม่ได้ใส่ Facebook Admin
+      </div>`;
+    }
+    box.innerHTML = html;
+  }
+  window.openSupportModal = function() {
+    renderSupportChannels();
+    document.getElementById('supportModal').classList.add('open');
+    lockPageScroll();
+  };
+  window.closeSupportModal = function() {
+    document.getElementById('supportModal').classList.remove('open');
+    unlockPageScroll();
+  };
+  window.closeSupportOutside = function(e) {
+    if (e.target === document.getElementById('supportModal')) window.closeSupportModal();
+  };
+</script>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
+  import { getFirestore, collection, addDoc, onSnapshot, orderBy, query, doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc, increment, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
+  import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
+  window._fbImports = { collection, addDoc, query, orderBy, onSnapshot, doc, deleteDoc };
+  const firebaseConfig = {
+    apiKey: "AIzaSyBbTMEyc4-3_sn-i47Xm5xTvw52r36SWkM",
+    authDomain: "sarasas-student-council.firebaseapp.com",
+    projectId: "sarasas-student-council",
+    storageBucket: "sarasas-student-council.firebasestorage.app",
+    messagingSenderId: "609628807972",
+    appId: "1:609628807972:web:e033287dc45e72ace149b1",
+    measurementId: "G-Z8YN9WD8C1"
+  };
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const auth = getAuth(app);
+  const provider = new GoogleAuthProvider();
+  const commentsCol = collection(db, 'comments');
+  const bansCol = collection(db, 'bans');
+  let allBans = {};
+  let banWallInterval = null;
+  let banWallCountdownInterval = null;
+  let _bansReady = false;
+  let _authReady = false;
+  let _userBanUnsub = null;
+  function getBanForUser(user) {
+    if (!user) return null;
+    const byUid = allBans[user.uid];
+    if (byUid && isActiveBan(byUid)) return byUid;
+    const email = (user.email || '').toLowerCase().trim();
+    const byEmail = Object.values(allBans).find(b =>
+      b.email && b.email.toLowerCase().trim() === email && isActiveBan(b)
+    );
+    if (byEmail) return byEmail;
+    return null;
+  }
+  function isActiveBan(ban) {
+    if (!ban) return false;
+    if (ban.until === -1) return true;
+    return ban.until > Date.now();
+  }
+  function isBanned(uid) {
+    const ban = allBans[uid];
+    if (!ban) return false;
+    return isActiveBan(ban);
+  }
+  function getBanTimeLeft(uid) {
+    const ban = allBans[uid];
+    if (!ban) return null;
+    if (ban.until === -1) return 'ถาวร';
+    const ms = ban.until - Date.now();
+    if (ms <= 0) return null;
+    const days = Math.floor(ms / 86400000);
+    const hours = Math.floor((ms % 86400000) / 3600000);
+    if (days > 0) return `เหลือ ${days} วัน ${hours} ชม.`;
+    return `เหลือ ${hours} ชม.`;
+  }
+  function subscribeUserBan(user) {
+    if (_userBanUnsub) { _userBanUnsub(); _userBanUnsub = null; }
+    if (!user) return;
+    const banDocRef = doc(db, 'bans', user.uid);
+    _userBanUnsub = onSnapshot(banDocRef, (snap) => {
+      if (snap.exists()) {
+        allBans[user.uid] = { id: snap.id, ...snap.data() };
+      } else {
+        delete allBans[user.uid];
+      }
+      window._allBans = allBans;
+      window._publicBannedUids = new Set(
+        Object.entries(allBans)
+          .filter(([uid, b]) => b && isActiveBan(b))
+          .map(([uid]) => uid)
+      );
+      _bansReady = true;
+      checkAndShowBanWall();
+      if (allComments.length > 0) renderComments(allComments);
+    }, (err) => {
+      console.warn('ban doc read error:', err);
+      _bansReady = true;
+    });
+  }
+  function subscribeAllBans() {
+    onSnapshot(bansCol, (snap) => {
+      allBans = {};
+      snap.docs.forEach(d => { allBans[d.id] = { id: d.id, ...d.data() }; });
+      window._allBans = allBans;
+      window._publicBannedUids = new Set(
+        Object.entries(allBans)
+          .filter(([uid, b]) => b && isActiveBan(b))
+          .map(([uid]) => uid)
+      );
+      _bansReady = true;
+      if (_authReady) checkAndShowBanWall();
+      if (allComments.length > 0) renderComments(allComments);
+    }, (err) => {
+      console.warn('bans collection error (check Firestore Rules):', err);
+      _bansReady = true;
+    });
+  }
+  function formatCountdown(ms) {
+    if (ms <= 0) return '00:00:00:00';
+    const days = Math.floor(ms / 86400000);
+    const hours = Math.floor((ms % 86400000) / 3600000);
+    const mins = Math.floor((ms % 3600000) / 60000);
+    const secs = Math.floor((ms % 60000) / 1000);
+    return `${String(days).padStart(2,'0')}:${String(hours).padStart(2,'0')}:${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}`;
+  }
+  function showBanWall(user) {
+    const ban = getBanForUser(user);
+    if (!ban) return;
+    const wall = document.getElementById('banWall');
+    const box = document.getElementById('banWallBox');
+    const isPermanent = ban.until === -1;
+    document.getElementById('banWallBannedAt').textContent =
+      ban.bannedAt ? new Date(ban.bannedAt).toLocaleString('th-TH') : '-';
+    document.getElementById('banWallReason').textContent =
+      (ban.reason && ban.reason !== 'ไม่ระบุ') ? ban.reason : 'ไม่ระบุสาเหตุ';
+    document.getElementById('banWallExpiry').textContent =
+      isPermanent ? '♾️ ถาวร' : new Date(ban.until).toLocaleString('th-TH');
+    const countdownEl = document.getElementById('banWallCountdown');
+    const labelEl = document.getElementById('banWallCountdownLabel');
+    const progressWrap = document.getElementById('banWallProgressWrap');
+    const progressBar = document.getElementById('banWallProgress');
+    const noteEl = document.getElementById('banWallNote');
+    if (isPermanent) {
+      countdownEl.textContent = '♾️ ถาวร';
+      countdownEl.classList.add('permanent');
+      labelEl.textContent = '🚫 การระงับนี้เป็นแบบถาวร';
+      progressWrap.style.display = 'none';
+      noteEl.innerHTML = 'หากคิดว่าเกิดข้อผิดพลาด กรุณาติดต่อทีมหาเสียงโดยตรง';
+    } else {
+      countdownEl.classList.remove('permanent');
+      progressWrap.style.display = '';
+      noteEl.innerHTML = 'หากคิดว่าเกิดข้อผิดพลาด กรุณาติดต่อทีมหาเสียง<br/>Popup นี้จะปิดอัตโนมัติเมื่อหมดเวลาแบน';
+      const totalMs = ban.until - (ban.bannedAt || (ban.until - 86400000));
+      const tick = () => {
+        const remaining = ban.until - Date.now();
+        if (remaining <= 0) {
+          hideBanWall();
+          return;
+        }
+        countdownEl.textContent = formatCountdown(remaining);
+        const pct = Math.max(0, Math.min(100, (remaining / totalMs) * 100));
+        progressBar.style.width = pct + '%';
+      };
+      tick();
+      if (banWallCountdownInterval) clearInterval(banWallCountdownInterval);
+      banWallCountdownInterval = setInterval(tick, 1000);
+    }
+    window.lockPageScroll();
+    wall.classList.add('show');
+    document.addEventListener('keydown', blockKeyboard, true);
+  }
+  function hideBanWall() {
+    if (banWallCountdownInterval) {
+      clearInterval(banWallCountdownInterval);
+      banWallCountdownInterval = null;
+    }
+    const wall = document.getElementById('banWall');
+    const box = document.getElementById('banWallBox');
+    box.classList.add('ban-wall-lifted');
+    document.getElementById('banWallTitle').textContent = '✅ การระงับสิ้นสุดแล้ว';
+    document.getElementById('banWallTitle').classList.add('ban-wall-lifted-title');
+    document.getElementById('banWallCountdownLabel').textContent = 'บัญชีของคุณได้รับการปลดแบนแล้ว';
+    document.getElementById('banWallCountdown').textContent = 'ปลดแบนแล้ว';
+    setTimeout(() => {
+      wall.classList.remove('show');
+      window.unlockPageScroll();
+      document.removeEventListener('keydown', blockKeyboard, true);
+    }, 2500);
+  }
+  function blockKeyboard(e) {
+    if (e.ctrlKey && e.shiftKey && e.key === 'F12') return;
+    e.stopPropagation();
+    e.preventDefault();
+  }
+  function checkAndShowBanWall() {
+    if (!currentUser || isAdmin) return;
+    const ban = getBanForUser(currentUser);
+    const formBox = document.getElementById('formBox');
+    if (formBox) formBox.style.display = ban ? 'none' : 'block';
+    if (ban) {
+      showBanWall(currentUser);
+    } else {
+      if (document.getElementById('banWall').classList.contains('show')) {
+        hideBanWall();
+      }
+    }
+  }
+  window.confirmBan = async function() {
+    const uid = window._banTargetUid;
+    const days = window._banDurationDays;
+    const reason = document.getElementById('banReasonInput').value.trim();
+    if (!uid) { alert('ไม่พบข้อมูลผู้ใช้'); return; }
+    const until = days === -1 ? -1 : Date.now() + days * 86400000;
+    const targetComment = allComments.find(c => c.uid === uid);
+    const targetEmail = targetComment ? (targetComment.realEmail || '') : (window._banTargetEmail || '');
+    try {
+      await setDoc(doc(db, 'bans', uid), {
+        uid,
+        email: targetEmail.toLowerCase().trim(),
+        reason: reason || 'ไม่ระบุ',
+        until,
+        bannedAt: Date.now(),
+        bannedBy: currentUser ? currentUser.email : 'admin',
+        realName: window._banTargetName || ''
+      });
+      const userComments = allComments.filter(c => c.uid === uid);
+      for (const c of userComments) {
+        try {
+          const repliesSnap = await getDocs(collection(db, 'comments', c.id, 'replies'));
+          for (const rd of repliesSnap.docs) {
+            await deleteDoc(doc(db, 'comments', c.id, 'replies', rd.id));
+          }
+          await deleteDoc(doc(db, 'comments', c.id));
+        } catch(e2) { console.error('ลบ comment ไม่สำเร็จ:', c.id, e2); }
+      }
+      window.closeBanModal();
+    } catch(e) { alert('เกิดข้อผิดพลาด: ' + e.message); console.error(e); }
+  };
+  window.unbanUser = async function(uid) {
+    document.querySelectorAll('.comment-dropdown').forEach(d => d.classList.remove('open'));
+    if (!confirm('ปลดแบนผู้ใช้นี้?')) return;
+    try {
+      await deleteDoc(doc(db, 'bans', uid));
+      delete allBans[uid];
+      window._allBans = allBans;
+      window._publicBannedUids = new Set(
+        Object.entries(allBans)
+          .filter(([u, b]) => b && isActiveBan(b))
+          .map(([u]) => u)
+      );
+      if (allComments.length > 0) renderComments(allComments);
+      else renderComments([]);
+    }
+    catch(e) { alert('เกิดข้อผิดพลาด'); console.error(e); }
+  };
+  window.confirmReduce = async function() {
+    const uid = window._reduceTargetUid;
+    const days = window._reduceDurationDays;
+    if (!uid) return;
+    const ban = (window._allBans || allBans)[uid];
+    if (!ban) { alert('ไม่พบข้อมูลการระงับ'); return; }
+    if (ban.until === -1) { alert('ไม่สามารถลดเวลาแบนถาวรได้ กรุณาใช้ปลดแบนแทน'); return; }
+    const newUntil = ban.until - days * 86400000;
+    try {
+      if (newUntil <= Date.now()) {
+        if (!confirm('หลังจากลดเวลาแล้ว การระงับจะหมดอายุทันที ต้องการปลดแบนผู้ใช้นี้เลยหรือไม่?')) return;
+        await deleteDoc(doc(db, 'bans', uid));
+        delete allBans[uid];
+        window._allBans = allBans;
+        window._publicBannedUids = new Set(
+          Object.entries(allBans)
+            .filter(([u, b]) => b && isActiveBan(b))
+            .map(([u]) => u)
+        );
+        if (allComments.length > 0) renderComments(allComments);
+        else renderComments([]);
+      } else {
+        await updateDoc(doc(db, 'bans', uid), { until: newUntil });
+      }
+      window.closeReduceModal();
+    } catch(e) { alert('เกิดข้อผิดพลาด'); console.error(e); }
+  };
+  window.confirmExtend = async function() {
+    const uid = window._extendTargetUid;
+    const days = window._extendDurationDays;
+    if (!uid) return;
+    const ban = allBans[uid];
+    let newUntil;
+    if (days === -1) { newUntil = -1; }
+    else if (ban && ban.until === -1) { newUntil = -1; }
+    else { newUntil = (ban && ban.until > Date.now() ? ban.until : Date.now()) + days * 86400000; }
+    try {
+      await updateDoc(doc(db, 'bans', uid), { until: newUntil });
+      window.closeExtendModal();
+    } catch(e) { alert('เกิดข้อผิดพลาด'); console.error(e); }
+  };
+  let currentUser = null;
+  let isAdmin = false;
+  let allComments = [];
+  async function checkIsAdmin(user) {
+    if (!user) return false;
+    const byUid = await getDoc(doc(db, 'admins', user.uid));
+    if (byUid.exists()) return true;
+    const adminsSnap = await getDocs(collection(db, 'admins'));
+    const adminEmails = adminsSnap.docs.map(d => (d.data().email || '').toLowerCase().trim());
+    return adminEmails.includes((user.email || '').toLowerCase().trim());
+  }
+  onAuthStateChanged(auth, async (user) => {
+    currentUser = user;
+    isAdmin = await checkIsAdmin(user);
+    _authReady = true;
+    if (isAdmin) {
+      subscribeAllBans();
+    } else {
+      subscribeUserBan(user);
+    }
+    updateAuthUI();
+    const adminTab = document.getElementById('adminOnlyTab');
+    if (adminTab) adminTab.style.display = isAdmin ? '' : 'none';
+    const councilTab = document.getElementById('councilOnlyTab');
+    if (councilTab) councilTab.style.display = isAdmin ? '' : 'none';
+    if (allComments.length > 0) renderComments(allComments);
+    if (_bansReady) checkAndShowBanWall();
+  });
+  function updateAuthUI() {
+    const loginArea = document.getElementById('loginArea');
+    const formBox = document.getElementById('formBox');
+    if (currentUser) {
+      const ban = getBanForUser(currentUser);
+      const banned = !isAdmin && ban;
+      loginArea.innerHTML = `
+        <div class="user-info" style="flex-wrap:wrap;gap:0.5rem 0.8rem;">
+          <img src="${currentUser.photoURL || ''}" class="user-photo" onerror="this.style.display='none'" />
+          <div style="display:flex;flex-direction:column;gap:0.1rem;flex:1;min-width:0;">
+            <span class="user-name" style="line-height:1.2;">👤 ${currentUser.displayName || currentUser.email}</span>
+            <span class="user-uid-badge" style="white-space:normal;word-break:break-all;max-width:none;">UserUID:${currentUser.uid}</span>
+          </div>
+          ${isAdmin ? '<span class="admin-badge">🛡️ Admin</span>' : ''}
+          ${banned ? '<span style="background:rgba(192,57,43,0.3);color:#ff8080;font-size:0.72rem;font-family:Kanit,sans-serif;font-weight:700;padding:0.2rem 0.6rem;border-radius:10px;border:1px solid rgba(192,57,43,0.4)">🚫 ถูกระงับ</span>' : ''}
+          <button class="btn-logout" onclick="window.logoutUser()">ออกจากระบบ</button>
+        </div>
+      `;
+      formBox.style.display = banned ? 'none' : 'block';
+      if (!banned) {
+        refreshButtonState();
+        setTimeout(initCharCounter, 100);
+        const nameInput = document.getElementById('inputName');
+        nameInput.value = currentUser.displayName || '';
+        nameInput.readOnly = true;
+      }
+    } else {
+      loginArea.innerHTML = `
+        <div class="login-prompt">
+          <p>กรุณาเข้าสู่ระบบเพื่อแสดงความคิดเห็น</p>
+          <button class="btn-google-login" onclick="window.loginWithGoogle()">
+            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="20" />
+            เข้าสู่ระบบด้วย Google
+          </button>
+        </div>
+      `;
+      formBox.style.display = 'none';
+    }
+  }
+  window.loginWithGoogle = async function() {
+    try {
+      await signInWithPopup(auth, provider);
+    } catch(e) { if (e.code !== 'auth/popup-closed-by-user') alert('เข้าสู่ระบบไม่สำเร็จ'); }
+  };
+  window.logoutUser = async function() {
+    if (_userBanUnsub) { _userBanUnsub(); _userBanUnsub = null; }
+    if (banWallCountdownInterval) clearInterval(banWallCountdownInterval);
+    document.getElementById('banWall').classList.remove('show');
+    window.unlockPageScroll();
+    document.removeEventListener('keydown', blockKeyboard, true);
+    allBans = {};
+    _bansReady = false;
+    await signOut(auth);
+  };
+  document.getElementById('commentsList').innerHTML = `<div class="empty-state"><div class="icon">⏳</div><p>กำลังโหลด...</p></div>`;
+  const replyCountCache = {};
+  async function preloadReplyCount(commentId) {
+    if (replyCountCache[commentId] !== undefined) return;
+    try {
+      const snap = await getDocs(collection(db, 'comments', commentId, 'replies'));
+      replyCountCache[commentId] = snap.size;
+      const chip = document.getElementById('reply-count-' + commentId);
+      if (chip) chip.textContent = snap.size;
+    } catch(e) {}
+  }
+  const q = query(commentsCol, orderBy('createdAt', 'desc'));
+  onSnapshot(q, (snapshot) => {
+    allComments = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+    window._allComments = allComments;
+    window._renderComments = renderComments;
+    renderComments(allComments);
+    allComments.forEach(function(cm) {
+      if (!replyListeners[cm.id]) subscribeReplies(cm.id);
+    });
+  });
+  const DAILY_LIMIT = 3;
+  const SUBMIT_COOLDOWN_MS = 30000;
+  const REPLY_COOLDOWN_MS = 15000;
+  const MAX_TEXT_LENGTH = 1000;
+  const MAX_REPLY_LENGTH = 500;
+  const MIN_TEXT_LENGTH = 5;
+  let _lastSubmitTime = 0;
+  let _lastReplyTime = 0;
+  let _submitAttempts = 0;
+  let _cooldownTimerInterval = null;
+  const SPAM_PATTERNS = [
+    /<script[\s\S]*?>/i,
+    /javascript\s*:/i,
+    /on\w+\s*=/i,
+    /data:\s*text\/html/i,
+    /(https?:\/\/[^\s]{60,})/i,
+  ];
+  const BLOCKED_WORDS = ['สคริปต์', 'javascript', '<script', 'alert(', 'document.cookie'];
+  function sanitizeText(text) {
+    return text.replace(/<[^>]*>/g, '').trim();
+  }
+  function validateTextContent(text, maxLen) {
+    if (!text || text.trim().length < MIN_TEXT_LENGTH) {
+      return { ok: false, reason: `⚠️ ข้อความสั้นเกินไป (ขั้นต่ำ ${MIN_TEXT_LENGTH} ตัวอักษร)` };
+    }
+    if (text.length > maxLen) {
+      return { ok: false, reason: `⚠️ ข้อความยาวเกิน ${maxLen} ตัวอักษร (ปัจจุบัน ${text.length})` };
+    }
+    for (const p of SPAM_PATTERNS) {
+      if (p.test(text)) return { ok: false, reason: '🚫 ตรวจพบรูปแบบที่ไม่อนุญาต กรุณาตรวจสอบข้อความ' };
+    }
+    const lower = text.toLowerCase();
+    for (const w of BLOCKED_WORDS) {
+      if (lower.includes(w.toLowerCase())) return { ok: false, reason: '🚫 ตรวจพบเนื้อหาที่ไม่อนุญาต' };
+    }
+    if (/(.)\1{29,}/.test(text)) {
+      return { ok: false, reason: '⚠️ ตรวจพบอักขระซ้ำกันมากผิดปกติ' };
+    }
+    return { ok: true };
+  }
+  function startCooldownTimer(remainingMs, btnEl, baseText) {
+    if (_cooldownTimerInterval) clearInterval(_cooldownTimerInterval);
+    const end = Date.now() + remainingMs;
+    const tick = () => {
+      const left = Math.ceil((end - Date.now()) / 1000);
+      if (left <= 0) {
+        clearInterval(_cooldownTimerInterval);
+        _cooldownTimerInterval = null;
+        if (btnEl) {
+          btnEl.disabled = false;
+          btnEl.style.opacity = '1';
+        }
+        refreshButtonState();
+        return;
+      }
+      if (btnEl) {
+        btnEl.disabled = true;
+        btnEl.style.opacity = '0.6';
+        btnEl.textContent = `⏳ รอ ${left} วิ...`;
+      }
+    };
+    tick();
+    _cooldownTimerInterval = setInterval(tick, 1000);
+  }
+  function getBackoffDelay(attempts) {
+    return Math.min(1000 * Math.pow(2, attempts), 30000);
+  }
+  function getTodayKey() {
+    const d = new Date();
+    return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;
+  }
+  async function getUserTodayCount() {
+    if (!currentUser) return 0;
+    const limitDoc = doc(db, 'daily_limits', `${currentUser.uid}_${getTodayKey()}`);
+    try {
+      const snap = await getDoc(limitDoc);
+      return snap.exists() ? (snap.data().count || 0) : 0;
+    } catch(e) { return 0; }
+  }
+  async function incrementUserTodayCount() {
+    if (!currentUser) return;
+    const limitDoc = doc(db, 'daily_limits', `${currentUser.uid}_${getTodayKey()}`);
+    try {
+      const snap = await getDoc(limitDoc);
+      if (snap.exists()) {
+        await updateDoc(limitDoc, { count: increment(1) });
+      } else {
+        await setDoc(limitDoc, { uid: currentUser.uid, date: getTodayKey(), count: 1 });
+      }
+    } catch(e) { console.error('limit update error', e); }
+  }
+  function updateSubmitButtonState(count) {
+    const btn = document.querySelector('.btn-submit');
+    if (!btn) return;
+    if (_cooldownTimerInterval) return;
+    const remaining = DAILY_LIMIT - count;
+    if (remaining <= 0) {
+      btn.disabled = true;
+      btn.textContent = '🚫 ครบ 3 ครั้งแล้ววันนี้';
+      btn.style.opacity = '0.5';
+    } else {
+      btn.disabled = false;
+      btn.textContent = `📨 ส่งความคิดเห็น (เหลือ ${remaining}/${DAILY_LIMIT} ครั้ง)`;
+      btn.style.opacity = '1';
+    }
+  }
+  async function refreshButtonState() {
+    if (isAdmin) {
+      const btn = document.querySelector('.btn-submit');
+      if (btn) { btn.disabled = false; btn.textContent = '📨 ส่งความคิดเห็น (Admin)'; btn.style.opacity = '1'; }
+      return;
+    }
+    const count = await getUserTodayCount();
+    updateSubmitButtonState(count);
+  }
+  function initCharCounter() {
+    const ta = document.getElementById('inputText');
+    if (!ta || ta._counterAdded) return;
+    ta._counterAdded = true;
+    const counter = document.createElement('div');
+    counter.id = 'charCounter';
+    counter.style.cssText = 'font-size:0.72rem;color:rgba(255,255,255,0.35);text-align:right;margin-top:0.25rem;font-family:Kanit,sans-serif;transition:color 0.2s';
+    ta.parentNode.insertBefore(counter, ta.nextSibling);
+    const update = () => {
+      const len = ta.value.length;
+      const pct = len / MAX_TEXT_LENGTH;
+      counter.textContent = `${len} / ${MAX_TEXT_LENGTH}`;
+      if (pct >= 1) counter.style.color = '#e74c3c';
+      else if (pct >= 0.8) counter.style.color = '#f39c12';
+      else counter.style.color = 'rgba(255,255,255,0.35)';
+    };
+    ta.addEventListener('input', update);
+    update();
+  }
+  window.submitComment = async function() {
+    if (!currentUser) { alert('กรุณาเข้าสู่ระบบก่อน'); return; }
+    if (!isAdmin) {
+      const ban = getBanForUser(currentUser);
+      if (ban) {
+        showBanWall(currentUser);
+        return;
+      }
+    }
+    if (!isAdmin) {
+      const sinceLastSubmit = Date.now() - _lastSubmitTime;
+      if (sinceLastSubmit < SUBMIT_COOLDOWN_MS) {
+        const remaining = SUBMIT_COOLDOWN_MS - sinceLastSubmit;
+        const btn = document.querySelector('.btn-submit');
+        showToast(`⏳ กรุณารอ ${Math.ceil(remaining/1000)} วินาทีก่อนส่งอีกครั้ง`, '#e67e22');
+        startCooldownTimer(remaining, btn, '📨 ส่งความคิดเห็น');
+        return;
+      }
+    }
+    const todayCount = isAdmin ? 0 : await getUserTodayCount();
+    if (!isAdmin && todayCount >= DAILY_LIMIT) {
+      alert('❌ วันนี้ส่งความคิดเห็นครบ 3 ครั้งแล้ว\nกลับมาใหม่พรุ่งนี้นะครับ 😊');
+      updateSubmitButtonState(todayCount);
+      return;
+    }
+    const isAnon = document.getElementById('anonCheck').checked;
+    const isPrivate = document.getElementById('privateCheck').checked;
+    const anonNum = currentUser.uid.split('').reduce((a, c) => (a * 31 + c.charCodeAt(0)) & 0xfffff, 0).toString().slice(0,6).padStart(6,'0');
+    const displayName = isAnon ? `User${anonNum}` : (currentUser.displayName || 'นักเรียนนิรนาม');
+    const name = displayName;
+    const level = document.getElementById('inputLevel').value;
+    if (!level) {
+      const sel = document.getElementById('inputLevel');
+      sel.style.borderColor = '#c0392b';
+      sel.style.boxShadow = '0 0 0 3px rgba(192,57,43,0.25)';
+      sel.focus();
+      setTimeout(() => { sel.style.borderColor = ''; sel.style.boxShadow = ''; }, 2000);
+      showToast('⚠️ กรุณาเลือกระดับชั้นก่อนส่ง', '#c0392b');
+      return;
+    }
+    const rawText = document.getElementById('inputText').value.trim();
+    const cleanText = sanitizeText(rawText);
+    const validation = validateTextContent(cleanText, MAX_TEXT_LENGTH);
+    if (!validation.ok) {
+      showToast(validation.reason, '#c0392b');
+      const ta = document.getElementById('inputText');
+      ta.style.borderColor = '#c0392b'; ta.focus();
+      setTimeout(() => ta.style.borderColor = '', 2000);
+      return;
+    }
+    const avatars = ['😊','🎓','📖','🌟','🏅','✨','🎒','💫','🌈','🦋','🍀','⚡','🎯','🔥','💡','🎵'];
+    const randomAvatar = avatars[Math.floor(Math.random() * avatars.length)];
+    const btn = document.querySelector('.btn-submit');
+    btn.disabled = true; btn.textContent = '⏳ กำลังส่ง...';
+    _lastSubmitTime = Date.now();
+    try {
+      await addDoc(commentsCol, {
+        name, level, uid: currentUser.uid,
+        type: window._selectedType, text: cleanText,
+        avatar: randomAvatar,
+        isAnon: isAnon,
+        isPrivate: isPrivate,
+        photoURL: isAnon ? '' : (currentUser.photoURL || ''),
+        realName: currentUser.displayName || '',
+        realEmail: currentUser.email || '',
+        realPhotoURL: currentUser.photoURL || '',
+        time: new Date().toLocaleString('th-TH', { hour:'2-digit', minute:'2-digit', day:'numeric', month:'short' }),
+        isAdmin: isAdmin,
+        likes: 0, likedBy: [], createdAt: Date.now()
+      });
+      if (!isAdmin) await incrementUserTodayCount();
+      document.getElementById('inputText').value = '';
+      document.getElementById('inputLevel').value = '';
+      showToast();
+      _submitAttempts = 0;
+      if (!isAdmin) {
+        const newCount = todayCount + 1;
+        if (newCount < DAILY_LIMIT) {
+          startCooldownTimer(SUBMIT_COOLDOWN_MS, btn, '📨 ส่งความคิดเห็น');
+        } else {
+          updateSubmitButtonState(newCount);
+        }
+      } else {
+        await refreshButtonState();
+      }
+    } catch(e) {
+      _submitAttempts++;
+      const backoff = getBackoffDelay(_submitAttempts);
+      console.error(e);
+      showToast(`❌ เกิดข้อผิดพลาด กรุณารอ ${Math.ceil(backoff/1000)} วิแล้วลองใหม่`, '#c0392b');
+      setTimeout(() => { btn.disabled = false; btn.style.opacity = '1'; refreshButtonState(); }, backoff);
+    }
+  };
+  window.toggleLike = async function(docId) {
+    if (!currentUser) { alert('กรุณาเข้าสู่ระบบก่อน'); return; }
+    const uid = currentUser.uid;
+    const ref = doc(db, 'comments', docId);
+    const commentData = allComments.find(c => c.id === docId);
+    const likedBy = (commentData && commentData.likedBy) || [];
+    const alreadyLiked = likedBy.includes(uid);
+    if (alreadyLiked) await updateDoc(ref, { likes: increment(-1), likedBy: arrayRemove(uid) });
+    else await updateDoc(ref, { likes: increment(1), likedBy: arrayUnion(uid) });
+  };
+  window._revealComment = function(docId) {
+    const c = allComments.find(x => x.id === docId);
+    if (!c) return;
+    const revealPhoto = document.getElementById('revealPhoto');
+    const revealPhotoEmoji = document.getElementById('revealPhotoEmoji');
+    revealPhoto.innerHTML = '';
+    if (c.realPhotoURL) {
+      const img = document.createElement('img');
+      img.src = c.realPhotoURL;
+      img.onerror = () => { revealPhoto.innerHTML = '<span>👤</span>'; };
+      revealPhoto.appendChild(img);
+    } else {
+      revealPhoto.innerHTML = '<span>👤</span>';
+    }
+    document.getElementById('revealName').textContent = c.realName || c.name || '-';
+    document.getElementById('revealEmail').textContent = c.realEmail || '-';
+    document.getElementById('revealCommentPreview').textContent = '"' + (c.text || '') + '"';
+    document.getElementById('revealModal').classList.add('open');
+  };
+  window.deleteComment = async function(docId) {
+    if (!currentUser) return;
+    const comment = allComments.find(c => c.id === docId);
+    if (!isAdmin && (!comment || comment.uid !== currentUser.uid)) return;
+    if (!confirm('ลบความคิดเห็นนี้?')) return;
+    try {
+      const repliesSnap = await getDocs(collection(db, 'comments', docId, 'replies'));
+      for (const rd of repliesSnap.docs) {
+        await deleteDoc(doc(db, 'comments', docId, 'replies', rd.id));
+      }
+      await deleteDoc(doc(db, 'comments', docId));
+    }
+    catch(e) { alert('ลบไม่สำเร็จ'); console.error(e); }
+  };
+  const repliesCache = {};
+  const replyListeners = {};
+  function subscribeReplies(commentId) {
+    if (replyListeners[commentId]) return;
+    const { collection: col, query: q2, orderBy: ob, onSnapshot: ons } = window._fbImports;
+    const repliesRef = col(db, 'comments', commentId, 'replies');
+    const rq = q2(repliesRef, ob('createdAt', 'asc'));
+    replyListeners[commentId] = ons(rq, (snap) => {
+      repliesCache[commentId] = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      replyCountCache[commentId] = repliesCache[commentId].length;
+      renderReplies(commentId);
+      document.querySelectorAll('#reply-count-' + commentId).forEach(function(el) {
+        el.textContent = repliesCache[commentId].length;
+      });
+    });
+  }
+  function renderReplies(commentId) {
+    const list = document.getElementById('replies-list-' + commentId);
+    if (!list) return;
+    const replies = repliesCache[commentId] || [];
+    if (replies.length === 0) {
+      list.innerHTML = '';
+      return;
+    }
+    const myUid = currentUser ? currentUser.uid : null;
+    list.innerHTML = replies.map(r => {
+      const avatarHtml = (r.photoURL && !r.isAnon)
+        ? `<img src="${r.photoURL}" alt="" onerror="this.style.display='none'" />`
+        : `<span style="font-size:0.75rem">${r.avatar || '😊'}</span>`;
+      const canDelete = isAdmin || (myUid && myUid === r.uid);
+      return `
+        <div class="reply-item">
+          <div class="reply-avatar">${avatarHtml}</div>
+          <div class="reply-body">
+            <div class="reply-author-row">
+              <span class="reply-author-name">${r.name || 'ไม่ระบุ'}</span>
+              <span class="reply-time">${r.time || ''}</span>
+              ${canDelete ? `<button class="reply-delete-btn" onclick="deleteReply('${commentId}','${r.id}')" title="ลบ">🗑️</button>` : ''}
+            </div>
+            <div class="reply-text">${(r.text || '').replace(/\n/g,'<br/>')}</div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+  window.toggleReplies = function(commentId, btn) {
+    const container = document.getElementById('replies-' + commentId);
+    if (!container) return;
+    const isOpen = container.classList.contains('open');
+    if (isOpen) {
+      container.classList.remove('open');
+      btn.innerHTML = `💬 ตอบกลับ <span class="reply-count-chip" id="reply-count-${commentId}">${repliesCache[commentId] ? repliesCache[commentId].length : 0}</span>`;
+    } else {
+      container.classList.add('open');
+      btn.innerHTML = `💬 ซ่อน <span class="reply-count-chip" id="reply-count-${commentId}">${repliesCache[commentId] ? repliesCache[commentId].length : 0}</span>`;
+      subscribeReplies(commentId);
+    }
+  };
+  window.handleReplyKey = function(e, commentId) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      submitReply(commentId);
+    }
+  };
+  window.submitReply = async function(commentId) {
+    if (!currentUser) { alert('กรุณาเข้าสู่ระบบก่อน'); return; }
+    if (!isAdmin) {
+      const ban = getBanForUser(currentUser);
+      if (ban) { showBanWall(currentUser); return; }
+    }
+    if (!isAdmin) {
+      const sinceLastReply = Date.now() - _lastReplyTime;
+      if (sinceLastReply < REPLY_COOLDOWN_MS) {
+        const left = Math.ceil((REPLY_COOLDOWN_MS - sinceLastReply) / 1000);
+        showToast('⏳ รอ ' + left + ' วินาทีก่อนตอบกลับอีกครั้ง', '#e67e22');
+        return;
+      }
+    }
+    const input = document.getElementById('reply-input-' + commentId);
+    const sendBtn = document.getElementById('reply-btn-' + commentId);
+    if (!input) return;
+    const rawReplyText = input.value.trim();
+    const cleanReply = sanitizeText(rawReplyText);
+    const replyValidation = validateTextContent(cleanReply, MAX_REPLY_LENGTH);
+    if (!replyValidation.ok) {
+      showToast(replyValidation.reason, '#c0392b');
+      input.focus();
+      return;
+    }
+    const text = cleanReply;
+    if (!text) { input.focus(); return; }
+    sendBtn.disabled = true; sendBtn.textContent = '⏳';
+    const anonCheckEl = document.getElementById('anonCheck');
+    const isAnon = !!(anonCheckEl && anonCheckEl.checked);
+    const anonNum = currentUser.uid.split('').reduce((a, ch) => (a * 31 + ch.charCodeAt(0)) & 0xfffff, 0)
+                      .toString().slice(0, 6).padStart(6, '0');
+    const avatars = ['😊','🎓','📖','🌟','🏅','✨','🎒','💫','🌈','🦋'];
+    const randomAvatar = avatars[Math.floor(Math.random() * avatars.length)];
+    try {
+      const { collection: col, addDoc: add } = window._fbImports;
+      const repliesRef = col(db, 'comments', commentId, 'replies');
+      await add(repliesRef, {
+        uid: currentUser.uid,
+        name: isAnon ? ('User' + anonNum) : (currentUser.displayName || 'นักเรียน'),
+        photoURL: isAnon ? '' : (currentUser.photoURL || ''),
+        avatar: randomAvatar,
+        isAnon: isAnon,
+        text,
+        time: new Date().toLocaleString('th-TH', { hour:'2-digit', minute:'2-digit', day:'numeric', month:'short' }),
+        createdAt: Date.now()
+      });
+      input.value = '';
+      input.style.height = 'auto';
+      if (!isAdmin) _lastReplyTime = Date.now();
+    } catch(e) {
+      alert('เกิดข้อผิดพลาด กรุณาลองใหม่');
+      console.error(e);
+    }
+    sendBtn.disabled = false; sendBtn.textContent = 'ส่ง';
+  };
+  window.deleteReply = async function(commentId, replyId) {
+    if (!currentUser) return;
+    if (!confirm('ลบการตอบกลับนี้?')) return;
+    try {
+      const { doc: d, deleteDoc: del } = window._fbImports;
+      await del(d(db, 'comments', commentId, 'replies', replyId));
+    } catch(e) { alert('ลบไม่สำเร็จ'); console.error(e); }
+  };
+  function renderComments(comments) {
+    const list = document.getElementById('commentsList');
+    const filterType = window._filterType || 'ทั้งหมด';
+    const myUid = currentUser ? currentUser.uid : null;
+    if (!window._publicBannedUids) {
+      window._publicBannedUids = new Set(
+        Object.entries(allBans)
+          .filter(([uid, b]) => b && isActiveBan(b))
+          .map(([uid]) => uid)
+      );
+    }
+    const publicBannedUids = window._publicBannedUids;
+    let filtered;
+    if (filterType === '__banned__' && isAdmin) {
+      const bans = window._allBans || allBans;
+      const bannedUids = Object.keys(bans).filter(uid => {
+        const b = bans[uid];
+        return b && (b.until === -1 || b.until > Date.now());
+      });
+      const seen = new Set();
+      filtered = [];
+      for (const c of comments) {
+        if (bannedUids.includes(c.uid) && !seen.has(c.uid)) {
+          seen.add(c.uid);
+          filtered.push(c);
+        }
+      }
+      bannedUids.forEach(uid => {
+        if (!seen.has(uid)) {
+          const ban = bans[uid];
+          filtered.push({ id: '__ban__' + uid, uid, realEmail: ban.email || ban.realEmail || '', name: ban.realName || uid, text: '', avatar: '🚫', isBanOnly: true });
+        }
+      });
+    } else if (filterType === '__council__' && isAdmin) {
+      filtered = comments.filter(c => c.isPrivate);
+    } else if (filterType === 'ทั้งหมด') {
+      filtered = isAdmin
+        ? comments
+        : comments.filter(c => !publicBannedUids.has(c.uid) && (!c.isPrivate || c.uid === myUid));
+    } else {
+      filtered = isAdmin
+        ? comments.filter(c => c.type === filterType)
+        : comments.filter(c => c.type === filterType && !publicBannedUids.has(c.uid) && (!c.isPrivate || c.uid === myUid));
+    }
+    const gradeFilter = window._gradeFilter || '';
+    if (gradeFilter) {
+      filtered = filtered.filter(c => c.level === gradeFilter);
+    }
+    if (filterType !== '__banned__' && filterType !== '__council__') {
+      filtered = [...filtered].sort((a, b) => {
+        const likesDiff = (b.likes || 0) - (a.likes || 0);
+        if (likesDiff !== 0) return likesDiff;
+        return (b.createdAt || 0) - (a.createdAt || 0);
+      });
+    }
+    document.getElementById('countBadge').textContent = filtered.length;
+    if (filtered.length === 0) {
+      list.innerHTML = `<div class="empty-state"><div class="icon">${filterType === '__banned__' ? '✅' : filterType === '__council__' ? '🔒' : '🌟'}</div><p>${filterType === '__banned__' ? 'ยังไม่มีผู้ถูกระงับ' : filterType === '__council__' ? 'ยังไม่มีข้อความเฉพาะทีม' : 'ยังไม่มีความคิดเห็นในหมวดนี้<br/>เป็นคนแรกที่บอกเราได้เลย!'}</p></div>`;
+      return;
+    }
+    list.innerHTML = filtered.map(c => {
+      const likedBy = c.likedBy || [];
+      const hasLiked = myUid && likedBy.includes(myUid);
+      const cEmail = c.realEmail || c.email || '';
+      const _bans = window._allBans || allBans;
+      const banData = _bans[c.uid];
+      const userBanned = isAdmin && banData && (banData.until === -1 || banData.until > Date.now());
+      const timeLeft = getBanTimeLeft(c.uid);
+      const isBanView = filterType === '__banned__';
+      const avatarHtml = (c.photoURL && !c.isAnon)
+        ? `<img src="${c.photoURL}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block" onerror="this.style.display='none';this.nextSibling.style.display='flex'" /><span style="display:none;font-size:1.3rem;align-items:center;justify-content:center;width:100%;height:100%">${c.avatar || '😊'}</span>`
+        : `<span style="font-size:1.3rem;display:flex;align-items:center;justify-content:center;width:100%;height:100%">${c.avatar || '😊'}</span>`;
+      const safeUid = (c.uid || '').replace(/'/g, "\\'");
+      const safeName = (c.realName || c.name || '').replace(/'/g, "\\'");
+      const isOwner = currentUser && currentUser.uid === c.uid;
+      let dropdownHtml = '';
+      if (isAdmin && !c.isBanOnly) {
+        const banBtn = userBanned
+          ? `<div class="dropdown-item success" onclick="unbanUser('${safeUid}')">✅ ปลดแบน</div>
+             <div class="dropdown-item warn" onclick="openExtendModal('${safeUid}','${safeName}',${banData ? banData.until : 0})">⏰ เพิ่มเวลาแบน</div>
+             <div class="dropdown-item" style="color:#55efc4" onclick="openReduceModal('${safeUid}','${safeName}',${banData ? banData.until : 0})">⏬ ลดเวลาแบน</div>`
+          : `<div class="dropdown-item warn" onclick="openBanModal('${safeUid}','${safeName}')">🚫 ระงับคอมเม้น</div>`;
+        dropdownHtml = `
+          <div class="comment-menu-wrap" id="menu-wrap-${c.id}">
+            <button class="comment-menu-btn" onclick="toggleCommentMenu('${c.id}', event)">⋮</button>
+            <div class="comment-dropdown" id="menu-${c.id}">
+              <div class="dropdown-item" onclick="revealIdentity('${c.id}')">🔍 ดูตัวจริง</div>
+              ${banBtn}
+              <div class="dropdown-item danger" onclick="deleteComment('${c.id}')">🗑️ ลบข้อความ</div>
+            </div>
+          </div>`;
+      } else if (isAdmin && c.isBanOnly) {
+        dropdownHtml = `
+          <div class="comment-menu-wrap" id="menu-wrap-${c.id}">
+            <button class="comment-menu-btn" onclick="toggleCommentMenu('${c.id}', event)">⋮</button>
+            <div class="comment-dropdown" id="menu-${c.id}">
+              <div class="dropdown-item success" onclick="unbanUser('${safeUid}')">✅ ปลดแบน</div>
+              <div class="dropdown-item warn" onclick="openExtendModal('${safeUid}','${safeName}',${banData ? banData.until : 0})">⏰ เพิ่มเวลาแบน</div>
+              <div class="dropdown-item" style="color:#55efc4" onclick="openReduceModal('${safeUid}','${safeName}',${banData ? banData.until : 0})">⏬ ลดเวลาแบน</div>
+            </div>
+          </div>`;
+      } else if (!isAdmin && isOwner && !c.isBanOnly) {
+        dropdownHtml = `
+          <div class="comment-menu-wrap" id="menu-wrap-${c.id}">
+            <button class="comment-menu-btn" onclick="toggleCommentMenu('${c.id}', event)">⋮</button>
+            <div class="comment-dropdown" id="menu-${c.id}">
+              <div class="dropdown-item danger" onclick="deleteComment('${c.id}')">🗑️ ลบโพสของฉัน</div>
+            </div>
+          </div>`;
+      }
+      const bannedBadgesHtml = (userBanned || isBanView) ? `
+        <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.5rem;flex-wrap:wrap">
+          <span class="banned-badge">🚫 ถูกระงับ</span>
+          ${timeLeft ? `<span class="banned-time-badge">${timeLeft}</span>` : ''}
+          ${banData && banData.reason && banData.reason !== 'ไม่ระบุ' ? `<span class="banned-reason">สาเหตุ: ${banData.reason}</span>` : ''}
+          ${banData && banData.bannedAt ? `<span style="font-size:0.72rem;color:rgba(255,255,255,0.3)">แบนเมื่อ: ${new Date(banData.bannedAt).toLocaleDateString('th-TH')}</span>` : ''}
+        </div>` : '';
+      const isOwnerOfThisPost = currentUser && currentUser.uid === c.uid;
+      const privateBadgeHtml = c.isPrivate ? `
+        <div style="display:flex;align-items:center;gap:0.4rem;margin-bottom:0.5rem">
+          ${isAdmin
+            ? `<span style="background:rgba(255,215,0,0.15);color:rgba(255,215,0,0.9);border:1px solid rgba(255,215,0,0.3);font-size:0.7rem;font-family:Kanit,sans-serif;font-weight:700;padding:0.15rem 0.6rem;border-radius:20px">🔒 เฉพาะทีมหาเสียงเห็น</span>`
+            : isOwnerOfThisPost
+              ? `<span style="background:rgba(255,215,0,0.1);color:rgba(255,215,0,0.85);border:1px solid rgba(255,215,0,0.25);font-size:0.7rem;font-family:Kanit,sans-serif;font-weight:700;padding:0.15rem 0.6rem;border-radius:20px">🔒 มีแค่คุณและทีมหาเสียงที่เห็นคอมเม้นนี้</span>`
+              : ''
+          }
+        </div>` : '';
+      const nameDisplay = isBanView ? (c.realName || c.name) : c.name;
+      return `
+        <div class="comment-item ${(userBanned || isBanView) ? 'banned-comment-item' : ''}${c.isPrivate ? ' private-comment-item' : ''}">
+          ${bannedBadgesHtml}
+          ${privateBadgeHtml}
+          <div class="comment-header">
+            <div class="comment-avatar">${avatarHtml}</div>
+            <div class="comment-meta">
+              <div class="comment-author">
+                ${nameDisplay}
+                ${(c.isAdmin && !c.isAnon) ? `<span style="background:rgba(255,215,0,0.18);color:rgba(255,215,0,0.95);border:1px solid rgba(255,215,0,0.4);font-size:0.68rem;font-family:Kanit,sans-serif;font-weight:700;padding:0.15rem 0.55rem;border-radius:20px;letter-spacing:0.3px">🗳️ ทีมหาเสียง</span>` : ''}
+                ${isBanView && cEmail ? `<span class="comment-level-badge" style="font-size:0.65rem">${cEmail}</span>` : ''}
+                ${c.level ? `<span class="comment-level-badge">${c.level}</span>` : ''}
+                ${c.type ? `<span class="comment-type-pill pill-${c.type}">${c.type}</span>` : ''}
+              </div>
+              <div class="comment-time">${c.time || ''}</div>
+            </div>
+            ${dropdownHtml}
+          </div>
+          ${!c.isBanOnly ? `<div class="comment-text">${c.text.replace(/\n/g,'<br/>')}</div>` : ''}
+          ${!c.isBanOnly && !isBanView ? `<div class="comment-likes">
+            <button class="like-btn ${hasLiked ? 'liked' : ''}" onclick="toggleLike('${c.id}')">
+              👍 ${c.likes > 0 ? c.likes : ''} เห็นด้วย${hasLiked ? ' ✓' : ''}
+            </button>
+          </div>
+          <div class="reply-section">
+            <button class="reply-toggle-btn" onclick="toggleReplies('${c.id}', this)">
+              💬 ตอบกลับ <span class="reply-count-chip" id="reply-count-${c.id}">${replyCountCache[c.id] || 0}</span>
+            </button>
+            <div class="replies-container" id="replies-${c.id}">
+              <div id="replies-list-${c.id}"></div>
+              ${currentUser ? `
+                <div class="reply-input-row">
+                  <textarea class="reply-input" id="reply-input-${c.id}" placeholder="พิมพ์ตอบกลับ..." rows="1"
+                    onkeydown="handleReplyKey(event,'${c.id}')"
+                    oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>
+                  <button class="reply-send-btn" id="reply-btn-${c.id}" onclick="submitReply('${c.id}')">ส่ง</button>
+                </div>
+              ` : `<div class="reply-login-hint">🔑 เข้าสู่ระบบเพื่อตอบกลับ</div>`}
+            </div>
+          </div>` : ''}
+        </div>
+      `;
+    }).join('');
+  }
+</script>
+</body>
+</html>
